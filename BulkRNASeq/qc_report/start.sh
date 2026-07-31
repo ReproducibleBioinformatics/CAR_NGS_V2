@@ -179,7 +179,9 @@ while IFS="$metadata_sep" read -ra row || [ -n "${row[0]}" ]; do
     fi
 
     log_info "Running FastQC on: $target_file"
-    if fastqc "$target_file" --threads "$threads" -q -o "$tmp_results"; then
+    fastqc_quiet_flag=""
+    if [ "$QUIET" == "true" ]; then fastqc_quiet_flag="-q"; fi
+    if fastqc "$target_file" --threads "$threads" $fastqc_quiet_flag -o "$tmp_results"; then
         prefix=""
         if [ -n "$sample_folder" ]; then
             prefix="$(echo "$sample_folder" | tr '/' '_')_"
