@@ -21,7 +21,7 @@ docker run --rm \
   -v /path/to/fastq_dir:/data_fastq \
   -v /path/to/results_dir:/results \
   ghcr.io/reproduciblebioinformatics/docker4seq-qc_report-v2:latest \
-  bash /home/start.sh <inputDir> <outDir> <metadata> <metadata_sep> <threads>
+  bash /home/start.sh <inputDir> <outDir> <metadata> <metadata_sep> <threads> <quiet>
 ```
 
 ---

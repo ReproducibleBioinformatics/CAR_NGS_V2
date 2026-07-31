@@ -43,5 +43,5 @@ description = a number indicating the number of cores to be used from the applic
 
 [parameter]
 name = quiet
-value = false
+values = false,true
 description = Set to "true" to suppress tool processing messages, set to "false" to keep verbose logging enabled.
