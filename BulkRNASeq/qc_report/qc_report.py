@@ -51,6 +51,8 @@ def main():
         errors.append(f'File not found: metadata = {args["metadata"]}"')
     if args['metadata_sep'] not in [',', ';', '\\t', 'tab']:
         errors.append(f"""Invalid value for metadata_sep: {args["metadata_sep"]}. Allowed: [',', ';', '\\t', 'tab']""")
+    if args['quiet'] not in ['false', 'true']:
+        errors.append(f"""Invalid value for quiet: {args["quiet"]}. Allowed: ['false', 'true']""")
 
     if errors:
         for e in errors:
@@ -96,9 +98,9 @@ def main():
     docker_vals['quiet'] = args['quiet']
 
     # --- Assemble docker command ---
-    cmd = ' ghcr.io/reproduciblebioinformatics/docker4seq-qc_report-v2:latest bash /home/start.sh <inputdir> <outdir> <metadata> <metadata_sep> <threads>'
+    cmd = ' ghcr.io/reproduciblebioinformatics/docker4seq-qc_report-v2:latest bash /home/start.sh <inputdir> <outdir> <metadata> <metadata_sep> <threads> <quiet>'
     mount_str = ' '.join(mounts)
-    cmd = ' '.join(['docker run --rm', mount_str, ' ghcr.io/reproduciblebioinformatics/docker4seq-qc_report-v2:latest bash /home/start.sh <inputdir> <outdir> <metadata> <metadata_sep> <threads>'])
+    cmd = ' '.join(['docker run --rm', mount_str, ' ghcr.io/reproduciblebioinformatics/docker4seq-qc_report-v2:latest bash /home/start.sh <inputdir> <outdir> <metadata> <metadata_sep> <threads> <quiet>'])
     def replace_placeholder(match):
         key = match.group(1)
         return str(docker_vals.get(key, match.group(0)))

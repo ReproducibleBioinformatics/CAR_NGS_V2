@@ -36,12 +36,6 @@ metadata_sep="${4}"
 threads="${5}"
 quiet="${6}"
 
-# ------- Validate quiet parameter ------- #
-if [ "$quiet" != "true" ] && [ "$quiet" != "false" ]; then
-    log_error "The quiet parameter must be 'true' or 'false' (provided: '$quiet')"
-    exit 1
-fi
-QUIET="$quiet"
 
 log_sep "=" "$CYAN"
 log_info "Pipeline Execution Context:"
@@ -51,6 +45,7 @@ echo -e "  ${CYAN}Results Dir     :${NC} ${YELLOW}${outDir}${NC}"
 echo -e "  ${CYAN}Sample Metadata :${NC} ${YELLOW}${metadata}${NC}"
 echo -e "  ${CYAN}Metadata Sep    :${NC} '${YELLOW}${metadata_sep}${NC}'"
 echo -e "  ${CYAN}Threads Allocated:${NC}${YELLOW}${threads}${NC}"
+echo -e "  ${CYAN}Quiet parameter:${NC}${YELLOW}${quiet}${NC}"
 log_sep "=" "$CYAN"
 log_info "Initializing FastQC and MultiQC Pipeline Wrapper"
 
@@ -66,6 +61,13 @@ if [ "$threads" -gt "$max_cores" ]; then
     log_warn "Requested threads ($threads) exceed available CPU cores ($max_cores). Capping allocation to $max_cores."
     threads=$max_cores
 fi
+
+# ------- Validate quiet parameter ------- #
+if [ "$quiet" != "true" ] && [ "$quiet" != "false" ]; then
+    log_error "The quiet parameter must be 'true' or 'false' (provided: '$quiet')"
+    exit 1
+fi
+QUIET="$quiet"
 
 # ------- Check input directories and metadata file ------- #
 if [ ! -d "$inputDir" ]; then
