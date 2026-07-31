@@ -36,7 +36,6 @@ metadata_sep="${4}"
 threads="${5}"
 quiet="${6}"
 
-
 log_sep "=" "$CYAN"
 log_info "Pipeline Execution Context:"
 echo -e "  ${CYAN}Docker Container:${NC} ${GREEN}${DOCKER_NAME}${NC}"
@@ -48,26 +47,48 @@ echo -e "  ${CYAN}Threads Allocated:${NC}${YELLOW}${threads}${NC}"
 echo -e "  ${CYAN}Quiet parameter:${NC}${YELLOW}${quiet}${NC}"
 log_sep "=" "$CYAN"
 log_info "Initializing FastQC and MultiQC Pipeline Wrapper"
-
-# ------- Validate threads parameter ------- #
-log_step "Validating parameters and environment..."
-if ! [[ "$threads" =~ ^[0-9]+$ ]] || [ "$threads" -le 0 ]; then
-    log_error "The threads parameter must be a positive integer (provided: '$threads')"
-    exit 1
-fi
-
-max_cores=$(nproc)
-if [ "$threads" -gt "$max_cores" ]; then
-    log_warn "Requested threads ($threads) exceed available CPU cores ($max_cores). Capping allocation to $max_cores."
-    threads=$max_cores
-fi
-
 # ------- Validate quiet parameter ------- #
 if [ "$quiet" != "true" ] && [ "$quiet" != "false" ]; then
     log_error "The quiet parameter must be 'true' or 'false' (provided: '$quiet')"
     exit 1
 fi
 QUIET="$quiet"
+# ------- Validate threads parameter ------- #
+log_step "Validating parameters and environment..."
+if ! [[ "$threads" =~ ^[0-9]+$ ]] || [ "$threads" -le 0 ]; then
+    log_error "The threads parameter must be a positive integer (provided: '$threads')"
+    exit 1
+fi
+max_cores=$(nproc)
+if [ "$threads" -gt "$max_cores" ]; then
+    log_warn "Requested threads ($threads) exceed available CPU cores ($max_cores). Capping allocation to $max_cores."
+    threads=$max_cores
+fi
+# ------- Validate and normalize metadata_sep ------- #
+parse_separator_inplace() {
+    local -n sep_ref="${1}"
+    local sep_clean
+
+    sep_clean=$(echo "$sep_ref" | xargs | tr '[:upper:]' '[:lower:]')
+
+    case "$sep_clean" in
+        "tab"|"\t"|"\\t")
+            sep_ref=$'\t'
+            return 0
+            ;;
+        ","|";")
+            sep_ref="$sep_clean"
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+if ! parse_separator_inplace metadata_sep; then
+    log_error "Invalid metadata separator provided: '$metadata_sep'. Allowed values: ',', ';', '\t', 'tab'."
+    exit 1
+fi
 
 # ------- Check input directories and metadata file ------- #
 if [ ! -d "$inputDir" ]; then
@@ -131,13 +152,17 @@ sample_count=0
 success_count=0
 
 # ------- Loop through metadata rows (skipping header) ------- #
-tail -n +2 "$metadata" | tr -d '\r' | while IFS="$metadata_sep" read -ra row; do
+while IFS="$metadata_sep" read -ra row || [ -n "${row[0]}" ]; do
     [ ${#row[@]} -eq 0 ] && continue
 
-    sample_name=$(echo "${row[$((idx_name - 1))]}" | xargs)
+    # Estrazione e pulizia di SampleName e SampleFolder (rimozione virgolette e spazi)
+    raw_name="${row[$((idx_name - 1))]}"
+    sample_name=$(echo "$raw_name" | sed -e 's/^[[:space:]]*"//' -e 's/"[[:space:]]*$//' | xargs)
+
     sample_folder=""
     if [ "$idx_folder" -ne -1 ] && [ ${#row[@]} -ge $idx_folder ]; then
-        sample_folder=$(echo "${row[$((idx_folder - 1))]}" | xargs)
+        raw_folder="${row[$((idx_folder - 1))]}"
+        sample_folder=$(echo "$raw_folder" | sed -e 's/^[[:space:]]*"//' -e 's/"[[:space:]]*$//' | xargs)
     fi
 
     [ -z "$sample_name" ] && continue
@@ -178,7 +203,8 @@ tail -n +2 "$metadata" | tr -d '\r' | while IFS="$metadata_sep" read -ra row; do
     else
         log_error "FastQC processing failed for: $target_file"
     fi
-done
+done < <(tail -n +2 "$metadata" | tr -d '\r')
+
 rm -rf "$tmp_results"
 if [ -z "$(find "$outDir" -maxdepth 1 -name "*_fastqc.zip" 2>/dev/null)" ]; then
     log_error "No FastQC outputs found in output directory. Skipping MultiQC."
