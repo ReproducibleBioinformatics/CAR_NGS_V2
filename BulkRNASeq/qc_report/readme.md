@@ -62,7 +62,7 @@ The workflow execution logic was generated using the **Baryon** configuration pa
 **Test command line:**
 
 ```bash
-python qc_report.py "./workdir" "./raw_data" "./results" "./raw_data/sampleMetaData.csv" ";" 10 false
+python qc_report.py "./workdir" "./raw_data" "./results" "./raw_data/sampleMetaData.csv" "," 10 false
 ```
 
 ---
