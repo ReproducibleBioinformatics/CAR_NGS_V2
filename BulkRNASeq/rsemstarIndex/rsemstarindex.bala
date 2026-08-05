@@ -5,7 +5,7 @@ name=rsemstarindex
 [run]
 command=docker run --rm 
 script= bash /home/start.sh  		
-image= ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarIndex-v2:latest
+image= ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarindex-v2:latest
 usage= <outDir> <fastafile> <gtffile> <filter> <threads> <chrom_pattern> <quiet>
 
 [directory]
