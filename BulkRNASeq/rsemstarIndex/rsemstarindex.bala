@@ -1,0 +1,50 @@
+[research]
+description=This function executes the docker container rsem-star1 where RSEM and STAR are installed. The index is created using ENSEMBL genome fasta file.
+name=rsemstarindex
+#
+[run]
+command=docker run --rm 
+script= bash /home/start.sh  		
+image= ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarIndex-v2:latest
+usage= <outDir> <fastafile> <gtffile> <filter> <threads> <chrom_pattern> <quiet>
+
+[directory]
+name=workDir
+description=indicating the working folder
+flag=io
+mount=/workDir
+
+[directory]
+name=outDir
+description=indicating the scratch folder where docker container will be mounted
+mount=/results
+flag=out
+
+[file]
+name=fastafile
+flag=cp
+description = Contains the raw DNA sequence (chromosomes) of the reference genome, used by STAR as the blueprint for alignment
+
+[file]
+name=gtffile
+flag=cp
+description = Contains the gene annotations (coordinates of exons, introns, and transcripts), used by RSEM to quantify gene expression.
+
+[parameter]
+name=filter
+values='none','all','mito','chrom'
+description = Genome filtration strategy applied prior to indexing. Options: 'none' (no filtering), 'all' (removes long-name scaffolds and mitochondrial DNA), 'mito' (removes mitochondrial DNA only), 'chrom' (removes long-name scaffolds only)
+
+[parameter]
+name=chrom_pattern
+description =Optional regex to override the default chromosome-naming pattern used to identify main chromosomes (e.g., '^chr[0-9]+$'). Use 'null' to keep the default.
+
+[parameter]
+name = threads
+value = 10
+description = a number indicating the number of cores to be used from the application
+
+[parameter]
+name = quiet
+values = false,true
+description = Set to "true" to suppress tool processing messages, set to "false" to keep verbose logging enabled.
