@@ -18,6 +18,9 @@ jobs:
         include:
           - name: docker4seq-qc_report-v2
             path: BulkRNASeq/qc_report
+          - name: docker4seq-skewer-v2
+            path: BulkRNASeq/skewer
+
           # Append remaining 7 module entries here as needed
 
     steps:
