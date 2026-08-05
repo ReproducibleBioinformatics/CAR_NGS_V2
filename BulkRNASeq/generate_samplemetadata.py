@@ -101,12 +101,12 @@ def generate_sample_sheet():
 
         csv_data.append({
             'SampleName': filename, 'SampleFolder': sample_folder,
-            'sampleNumber': sample_number, 'Batch': "NA",
+            'SampleNumber': sample_number, 'Batch': "NA",
             'Covariate': covariate, 'VisName': vis_name
         })
 
     # ------- Generate CSV Metadata Output File ------- #
-    headers = ['SampleName', 'SampleFolder', 'sampleNumber', 'Batch', 'Covariate', 'VisName']
+    headers = ['SampleName', 'SampleFolder', 'SampleNumber', 'Batch', 'Covariate', 'VisName']
     try:
         with open(output_filepath, mode='w', newline='', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=headers, delimiter=',')
