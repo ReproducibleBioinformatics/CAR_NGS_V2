@@ -112,9 +112,15 @@ def main():
     cmd = ' ghcr.io/reproduciblebioinformatics/docker4seq-skewer-v2:latest bash /home/start.sh <inputdir> <outdir> <adapter5> <adapter3> <seq_type> <metadata> <metadata_sep> <threads> <quiet>'
     mount_str = ' '.join(mounts)
     cmd = ' '.join(['docker run --rm', mount_str, ' ghcr.io/reproduciblebioinformatics/docker4seq-skewer-v2:latest bash /home/start.sh <inputdir> <outdir> <adapter5> <adapter3> <seq_type> <metadata> <metadata_sep> <threads> <quiet>'])
+    PARAM_NAMES = ['adapter5', 'adapter3', 'seq_type', 'metadata_sep', 'threads', 'quiet']
     def replace_placeholder(match):
         key = match.group(1)
-        return str(docker_vals.get(key, match.group(0)))
+        val = str(docker_vals.get(key, match.group(0)))
+        if key in PARAM_NAMES:
+            if re.search(r'[;&|()<>$`"\'\s]', val):
+                escaped_val = val.replace('"', '\\"')
+                return f'"{escaped_val}"'
+        return val
 
     cmd = re.sub(r'<([^>]+)>', replace_placeholder, cmd)
 

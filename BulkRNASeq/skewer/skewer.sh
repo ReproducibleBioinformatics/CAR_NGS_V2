@@ -116,9 +116,21 @@ docker_vals["threads"]="${threads}"
 docker_vals["quiet"]="${quiet}"
 
 mount_str="${mounts[*]}"
+PARAM_NAMES=("adapter5" "adapter3" "seq_type" "metadata_sep" "threads" "quiet")
+special_chars_re='[;&|()<>$`"'"'"'[:space:]]'
 cmd="docker run --rm ${mount_str} ghcr.io/reproduciblebioinformatics/docker4seq-skewer-v2:latest bash /home/start.sh <inputdir> <outdir> <adapter5> <adapter3> <seq_type> <metadata> <metadata_sep> <threads> <quiet>"
 for key in "${!docker_vals[@]}"; do
-    cmd="${cmd//<${key}>/${docker_vals[${key}]}}"
+    val="${docker_vals[${key}]}"
+    is_param=0
+    for p_name in "${PARAM_NAMES[@]}"; do
+        if [ "${key}" = "${p_name}" ]; then is_param=1; break; fi
+    done
+    if [ "${is_param}" -eq 1 ] && [[ "${val}" =~ ${special_chars_re} ]]; then
+        escaped_val=$(echo "${val}" | sed 's/"/\\"/g')
+        cmd="${cmd//<${key}>/\"${escaped_val}\"}"
+    else
+        cmd="${cmd//<${key}>/${val}}"
+    fi
 done
 echo -e "\n${YELLOW}Running:${RESET}\n${WHITE}${cmd}${RESET}\n"
 log_path="${scratch_path}/output_log.txt"
