@@ -22,8 +22,8 @@ jobs:
             path: BulkRNASeq/qc_report
           - name: docker4seq-skewer-v2
             path: BulkRNASeq/skewer
-          - name: docker4seq-rsemstarIndex-v2
-            path: BulkRNASeq/rsemstarIndex
+          - name: docker4seq-rsemstarindex-v2
+            path: BulkRNASeq/rsemstarindex
 
           # Append remaining 7 module entries here as needed
 
