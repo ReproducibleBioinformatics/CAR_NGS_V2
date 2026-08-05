@@ -5,7 +5,7 @@ name=skewer
 [run]
 command=docker run --rm 
 script= bash /home/start.sh  		
-image= docker4seq-skewer-v2  
+image= ghcr.io/reproduciblebioinformatics/docker4seq-skewer-v2:latest
 usage= <inputDir> <outDir> <adapter5> <adapter3> <seq_type> <metadata> <metadata_sep> <threads> <quiet>
 #
 [directory]
