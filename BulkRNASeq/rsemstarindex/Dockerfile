@@ -1,8 +1,9 @@
 FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
-
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    zlib1g-dev \
     r-base \
     perl \
     r-bioc-biostrings \
@@ -10,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY RSEM-1.3.3 /usr/local/bin/RSEM-1.3.3
+RUN cd /usr/local/bin/RSEM-1.3.3 && make
 RUN chmod -R 755 /usr/local/bin/RSEM-1.3.3
 ENV PATH="/usr/local/bin/RSEM-1.3.3:${PATH}"
 ADD 2.7.11b.tar.gz /home/
