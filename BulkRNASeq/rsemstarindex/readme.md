@@ -11,17 +11,27 @@ The workflow takes a reference genome FASTA file and a gene annotation GTF file 
 The tool is packaged and distributed via GitHub Container Registry (GHCR) under the Docker image:
 `ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarindex-v2:latest`
 
+Execution is driven by a wrapper script generated from the `rsemstarindex.bala` specification via [**Baryon**](https://github.com/Fairflow-BioinformaticsFramework/Baryonlang), Fairflow's `.bala`-to-source-code generator. Baryon translates the `.bala` specification into an equivalent runnable script in the target language (Python, R, etc.), which validates the inputs, prepares an isolated scratch working directory, copies every file declared with `flag=cp` in the `.bala` spec (`fastafile`, `gtffile`) into it, assembles the corresponding `docker run` command from the `.bala` `usage` template, and finally executes it. See the [Baryon repository](https://github.com/Fairflow-BioinformaticsFramework/Baryonlang) for details on installing Baryon and generating the wrapper script for your language of choice.
+
 ### Command Syntax
+
+```bash
+python rsemstarindex.py <workdir> <outdir> <fastafile> <gtffile> <filter> <chrom_pattern> <threads> <quiet>
+```
+
+### Manual Docker Execution
+
+Users who prefer to skip the Baryon-generated wrapper can invoke the container directly with `docker run`. In that case, the `flag=cp` inputs (`fastafile`, `gtffile`) must be copied (or bind-mounted) into the `/workDir` mount beforehand, since `start.sh` expects plain filesystem paths, not host paths outside the container:
 
 ```bash
 docker run --rm \
   -v /path/to/workdir:/workDir \
   -v /path/to/results_dir:/results \
-  -v /path/to/fastafile.fa:/data/fastafile.fa \
-  -v /path/to/gtffile.gtf:/data/gtffile.gtf \
   ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarindex-v2:latest \
-  bash /home/start.sh <outDir> <fastafile> <gtffile> <filter> [threads] [chrom_pattern] [quiet]
+  bash /home/start.sh /results /workDir/<fastafile> /workDir/<gtffile> <filter> [threads] [chrom_pattern] [quiet]
 ```
+
+where `<fastafile>` and `<gtffile>` are the names of the FASTA/GTF files previously copied into `/path/to/workdir` on the host (so that they appear under `/workDir` inside the container). See the [`start.sh`](#startsh) section below for the full argument reference.
 
 ---
 
@@ -29,8 +39,8 @@ docker run --rm \
 
 | Mount Point | Flag | Description |
 | :--- | :--- | :--- |
-| `/workDir` | `io` | Working folder for execution and temporary file storage. |
-| `/results` | `out` | Scratch/destination directory where the container is mounted and the RSEM/STAR genome index is written. |
+| `/workDir` | `io` | Working folder for execution and temporary file storage. In the Baryon-generated workflow this is mapped to an auto-numbered `<workdir>/scratchN` folder, into which every `flag=cp` file (`fastafile`, `gtffile`) is copied before the container starts; when running manually, the same files must be copied here by hand. |
+| `/results` | `out` | Scratch/destination directory where the container is mounted and the RSEM/STAR genome index is written. In the Baryon-generated workflow this is mapped to an auto-numbered `<outdir>/outputN` folder. |
 
 ---
 
@@ -57,7 +67,13 @@ docker run --rm \
 
 ## Implementation Details
 
-The workflow execution logic was generated using the **Baryon** configuration parser and builder, based on the `rsemstarindex.bala` specification. The workflow wraps [RSEM](https://github.com/deweylab/RSEM) 1.3.3 and [STAR](https://github.com/alexdobin/STAR) 2.7.11b, both installed inside the container image, and executes `rsem-prepare-reference --star` to build a combined RSEM/STAR genome index using an ENSEMBL-style genome FASTA file and its corresponding GTF annotation.
+The workflow execution logic was generated using [**Baryon**](https://github.com/Fairflow-BioinformaticsFramework/Baryonlang), Fairflow's configuration parser and code builder. Specifically, the generated Python script (`rsemstarindex.py`)—derived from the `rsemstarindex.bala` specification—was used to execute, benchmark, and validate the indexing pipeline. Baryon can regenerate the equivalent wrapper in other supported target languages directly from the same `.bala` file; refer to the Baryon repository for the list of supported languages and generation instructions. The workflow wraps [RSEM](https://github.com/deweylab/RSEM) 1.3.3 and [STAR](https://github.com/alexdobin/STAR) 2.7.11b, both installed inside the container image, and executes `rsem-prepare-reference --star` to build a combined RSEM/STAR genome index using an ENSEMBL-style genome FASTA file and its corresponding GTF annotation.
+
+**Test command line:**
+
+```bash
+python rsemstarindex.py "./workdir" "./results" "./raw_data/genome.fa.gz" "./raw_data/annotation.gtf.gz" all null 10 false
+```
 
 ---
 
@@ -65,7 +81,7 @@ The workflow execution logic was generated using the **Baryon** configuration pa
 
 ### `start.sh`
 
-The entrypoint script invoked by the container (`bash /home/start.sh ...`). It orchestrates the full pipeline: argument validation, input decompression, optional genome filtering, and RSEM/STAR reference index generation.
+The entrypoint script invoked inside the container (`bash /home/start.sh ...`), launched either by the Baryon-generated wrapper or manually via `docker run`. It orchestrates the full in-container pipeline: argument validation, input decompression, optional genome filtering, and RSEM/STAR reference index generation.
 
 **Usage**
 
