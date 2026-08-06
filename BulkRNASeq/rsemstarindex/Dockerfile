@@ -11,9 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY RSEM-1.3.3 /usr/local/bin/RSEM-1.3.3
-RUN cd /usr/local/bin/RSEM-1.3.3 && make
 RUN chmod -R 755 /usr/local/bin/RSEM-1.3.3
+RUN cd /usr/local/bin/RSEM-1.3.3 && make
 ENV PATH="/usr/local/bin/RSEM-1.3.3:${PATH}"
+
 ADD 2.7.11b.tar.gz /home/
 RUN mkdir -p /usr/local/bin \
     && cp /home/STAR-2.7.11b/bin/Linux_x86_64_static/STAR /usr/local/bin/STAR \
