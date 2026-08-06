@@ -109,7 +109,7 @@ docker_vals["quiet"]="${quiet}"
 mount_str="${mounts[*]}"
 PARAM_NAMES=("filter" "chrom_pattern" "threads" "quiet")
 special_chars_re='[;&|()<>$`"'"'"'[:space:]]'
-cmd="docker run --rm ${mount_str} ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarindex-v2:latest bash /home/start.sh <outdir> <fastafile> <gtffile> <filter> <threads> <chrom_pattern> <quiet>"
+cmd="docker run --rm ${mount_str} ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarindex-v2:latest bash /home/start.sh <outdir> <fastafile> <gtffile> <filter> <chrom_pattern> <threads> <quiet>"
 for key in "${!docker_vals[@]}"; do
     val="${docker_vals[${key}]}"
     is_param=0
