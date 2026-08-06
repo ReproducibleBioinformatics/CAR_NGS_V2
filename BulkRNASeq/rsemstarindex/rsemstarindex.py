@@ -101,9 +101,9 @@ def main():
     docker_vals['quiet'] = args['quiet']
 
     # --- Assemble docker command ---
-    cmd = ' ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarindex-v2:latest bash /home/start.sh <outdir> <fastafile> <gtffile> <filter> <threads> <chrom_pattern> <quiet>'
+    cmd = ' ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarindex-v2:latest bash /home/start.sh <outdir> <fastafile> <gtffile> <filter> <chrom_pattern> <threads> <quiet>'
     mount_str = ' '.join(mounts)
-    cmd = ' '.join(['docker run --rm', mount_str, ' ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarindex-v2:latest bash /home/start.sh <outdir> <fastafile> <gtffile> <filter> <threads> <chrom_pattern> <quiet>'])
+    cmd = ' '.join(['docker run --rm', mount_str, ' ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarindex-v2:latest bash /home/start.sh <outdir> <fastafile> <gtffile> <filter> <chrom_pattern> <threads> <quiet>'])
     PARAM_NAMES = ['filter', 'chrom_pattern', 'threads', 'quiet']
     def replace_placeholder(match):
         key = match.group(1)
