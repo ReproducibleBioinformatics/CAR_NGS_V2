@@ -12,26 +12,31 @@ log_sep() { echo -e "${2:-$CYAN}$(printf '%0.s'${1:-=} {1..100})${NC}"; }
 show_usage() {
     log_sep "-" "$YELLOW"
     echo -e "${YELLOW}Usage:${NC}"
-    echo -e "  $0 <outDir> <fastafile> <gtffile> <filter> [threads] [chrom_pattern] [quiet]"
+    echo -e "  $0 <results> <fastafile> <gtffile> <filter> <chrom_pattern> <threads> <quiet>"
     echo ""
-    echo -e "${YELLOW}Arguments:${NC}"
-    echo -e "  ${CYAN}outDir${NC}         Output directory for pipeline results"
-    echo -e "  ${CYAN}fastafile${NC}      Path to the input genome FASTA file (.fa or .fa.gz)"
-    echo -e "  ${CYAN}gtffile${NC}        Path to the input gene annotation GTF file (.gtf or .gtf.gz)"
-    echo -e "  ${CYAN}filter${NC}         Filtering mode ('none', 'all', 'mito', 'chrom')"
-    echo -e "  ${CYAN}chrom_pattern${NC}  Chromosome regex filter pattern (Optional, e.g., 'chr1' or '(1)')"
-    echo -e "  ${CYAN}threads${NC}        Number of parallel threads "    
-    echo -e "  ${CYAN}quiet${NC}          Suppress processing log messages: 'true' or 'false'"
+    echo -e "${YELLOW}Arguments (all mandatory):${NC}"
+    echo -e "  ${CYAN}results${NC}       Output directory for pipeline results"
+    echo -e "  ${CYAN}fastafile${NC}     Path to the input genome FASTA file (.fa or .fa.gz)"
+    echo -e "  ${CYAN}gtffile${NC}       Path to the input gene annotation GTF file (.gtf or .gtf.gz)"
+    echo -e "  ${CYAN}filter${NC}        Filtering mode ('none', 'all', 'mito', 'chrom')"
+    echo -e "  ${CYAN}chrom_pattern${NC} Chromosome regex filter pattern (use \"\" when not needed, e.g., 'chr1' or '(1)')"
+    echo -e "  ${CYAN}threads${NC}       Number of parallel threads (positive integer)"
+    echo -e "  ${CYAN}quiet${NC}         Suppress processing log messages: 'true' or 'false'"
     log_sep "-" "$YELLOW"
 }
 
 # ------- Argument Checking ------- #
-if [ "$#" -lt 4 ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+# All arguments are mandatory: always use -ne <N> for an exact count check.
+# Do NOT use -lt <N> / optional trailing arguments - every parameter must be
+# explicitly passed by the caller, even if empty ("" for chrom_pattern when
+# not needed).
+if [ "$#" -ne 7 ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
     show_usage
     exit 1
 fi
 
-outDir="${1}"
+# ------- Positional Arguments Assignment ------- #
+results="${1}"
 fastafile="${2}"
 gtffile="${3}"
 filter="${4}"
@@ -39,17 +44,20 @@ chrom_pattern="${5}"
 threads="${6}"
 quiet="${7}"
 
-# ------- Validate quiet parameter upfront for logging ------- #
+# ------- Validate Quiet Parameter (upfront, required for logging) ------- #
+# Always validate "quiet" BEFORE printing anything else, so that an invalid
+# value fails immediately without emitting a partial/misleading context block.
 if [ "$quiet" != "true" ] && [ "$quiet" != "false" ]; then
     log_error "The quiet parameter must be 'true' or 'false' (provided: '$quiet')"
     exit 1
 fi
 QUIET="$quiet"
 
+# ------- Print Pipeline Execution Context ------- #
 log_sep "=" "$CYAN"
 log_info "Pipeline Execution Context:"
 echo -e "  ${CYAN}Docker Container:${NC} ${GREEN}${DOCKER_NAME}${NC}"
-echo -e "  ${CYAN}Results Dir     :${NC} ${YELLOW}${outDir}${NC}"
+echo -e "  ${CYAN}Results Dir     :${NC} ${YELLOW}${results}${NC}"
 echo -e "  ${CYAN}FASTA File      :${NC} ${YELLOW}${fastafile}${NC}"
 echo -e "  ${CYAN}GTF File        :${NC} ${YELLOW}${gtffile}${NC}"
 echo -e "  ${CYAN}Filter Mode     :${NC} ${YELLOW}${filter}${NC}"
@@ -57,54 +65,70 @@ echo -e "  ${CYAN}Chr Pattern     :${NC} '${YELLOW}${chrom_pattern}${NC}'"
 echo -e "  ${CYAN}Threads         :${NC} ${YELLOW}${threads}${NC}"
 echo -e "  ${CYAN}Quiet Mode      :${NC} ${YELLOW}${quiet}${NC}"
 log_sep "=" "$CYAN"
-log_info "Initializing RSEM Reference Preparation Wrapper"
+log_info "Initializing RSEM/STAR Index Pipeline Wrapper"
 
-# ------- Validate threads parameter ------- #
-log_step "Validating directory mounts and input parameters..."
+# ------- Validate Threads Parameter ------- #
+log_step "Validating parameters and environment..."
 if ! [[ "$threads" =~ ^[0-9]+$ ]] || [ "$threads" -le 0 ]; then
     log_error "The threads parameter must be a positive integer (provided: '$threads')"
     exit 1
 fi
 
-# ------- Optimize threads allocation ------- #
+# ------- Optimize Threads Allocation ------- #
 max_cores=$(nproc)
 if [ "$threads" -gt "$max_cores" ]; then
     log_warn "Requested threads ($threads) exceed available CPU cores ($max_cores). Capping allocation to $max_cores."
     threads=$max_cores
 fi
 
-# ------- Check outDir exists and is empty ------- #
-if [ ! -d "$outDir" ]; then
-    log_error "Output directory '$outDir' does not exist."
+# ------- Check Results Directory ------- #
+if [ ! -d "$results" ]; then
+    log_error "Results directory '$results' does not exist."
     exit 1
 fi
-if [ -n "$(find "$outDir" -mindepth 1 -print -quit 2>/dev/null)" ]; then
-    log_error "Output directory '$outDir' is not empty. Terminating pipeline to prevent overwriting existing data."
+if [ -n "$(find "$results" -mindepth 1 -print -quit 2>/dev/null)" ]; then
+    log_error "Results directory '$results' is not empty. Terminating pipeline to prevent overwriting existing data."
     exit 1
 fi
 
-# ------- Check input files ------- #
+# ------- Check Input Files ------- #
 if [ -z "$fastafile" ] || [ ! -f "$fastafile" ]; then
     log_error "FASTA file parameter is empty or the file '$fastafile' does not exist."
-    exit 3
+    exit 1
 fi
 if [ -z "$gtffile" ] || [ ! -f "$gtffile" ]; then
     log_error "GTF file parameter is empty or the file '$gtffile' does not exist."
-    exit 3
+    exit 1
 fi
 
-# ------- Check filter ------- #
+# ------- Validate Filter Parameter ------- #
 case "$filter" in
     none|all|mito|chrom) ;;
     *)
         log_error "Unsupported filter '$filter'. Allowed values: 'none', 'all', 'mito', 'chrom'."
-        exit 3
+        exit 1
         ;;
 esac
 
-# ------- Step 1: Decompress files upfront ------- #
+# ==============================================================================
+# EXIT CODE SCHEME
+# exit 1 -> usage / argument / input / metadata validation errors (everything above this line)
+# The three external tools invoked below (remove_mitochondrion.R,
+# filter_chromosomes.R, rsem-prepare-reference) do NOT follow a simple
+# incrementing exit-N-per-tool scheme, because the original business logic
+# combines them differently and is left unchanged here:
+#   - remove_mitochondrion.R / filter_chromosomes.R: any real failure of
+#     either sets overall_status=1 and aborts before RSEM (status 3 from
+#     remove_mitochondrion.R is treated as a non-fatal warning, not a
+#     failure).
+#   - rsem-prepare-reference: its own exit code is propagated verbatim via
+#     "exit $overall_status" (not remapped to a fixed scheme value), since
+#     the exact code may carry diagnostic meaning.
+# ==============================================================================
+
+# ------- Step 1: Decompress Input Files Upfront ------- #
 log_step "Decompressing input files if needed..."
-tmp_decomp_dir="${outDir}/_tmp_decomp"
+tmp_decomp_dir="${results}/_tmp_decomp"
 mkdir -p "$tmp_decomp_dir"
 
 target_gtf="${tmp_decomp_dir}/annotation.gtf"
@@ -127,7 +151,7 @@ fi
 # ------- Step 2: Apply Filters on Decompressed Files ------- #
 log_step "Applying requested filter (filter=$filter)..."
 log_sep
-OVERALL_STATUS=0
+overall_status=0
 
 run_remove_mitochondrion() {
     log_info "-> Running remove_mitochondrion on $target_fasta"
@@ -151,32 +175,32 @@ fi
 
 if [ "$filter" == "all" ] || [ "$filter" == "mito" ]; then
     run_remove_mitochondrion
-    STATUS_R=$? 
-    if [ $STATUS_R -eq 3 ]; then
+    status_r=$?
+    if [ $status_r -eq 3 ]; then
         log_warn "remove_mitochondrion completed with status 3: No target chromosomes found for filtering."
-    elif [ $STATUS_R -ne 0 ]; then
-        log_error "remove_mitochondrion filtering step failed with status $STATUS_R."
-        OVERALL_STATUS=1
+    elif [ $status_r -ne 0 ]; then
+        log_error "remove_mitochondrion filtering step failed with status $status_r."
+        overall_status=1
     else
         log_success "Mitochondrion filtering completed successfully."
-    fi    
+    fi
 fi
 
-if [ "$OVERALL_STATUS" -eq 0 ] && { [ "$filter" == "all" ] || [ "$filter" == "chrom" ]; }; then
+if [ "$overall_status" -eq 0 ] && { [ "$filter" == "all" ] || [ "$filter" == "chrom" ]; }; then
     run_filter_chromosomes
-    STATUS_R=$? 
-    if [ $STATUS_R -ne 0 ]; then
-        log_error "filter_chromosomes filtering step failed with status $STATUS_R."
-        OVERALL_STATUS=1
+    status_r=$?
+    if [ $status_r -ne 0 ]; then
+        log_error "filter_chromosomes filtering step failed with status $status_r."
+        overall_status=1
     else
         log_success "Chromosome filtering completed successfully."
     fi
 fi
 
-if [ "$OVERALL_STATUS" -ne 0 ]; then
+if [ "$overall_status" -ne 0 ]; then
     log_error "One or more filtering steps failed. Aborting before RSEM reference preparation."
     rm -rf "$tmp_decomp_dir"
-    exit "$OVERALL_STATUS"
+    exit "$overall_status"
 fi
 
 # ------- Step 3: Run RSEM Prepare Reference ------- #
@@ -189,21 +213,22 @@ log_sep
     --star-path /usr/local/bin/ \
     --gtf "$target_gtf" \
     "$target_fasta" \
-    "${outDir}/genome"
+    "${results}/genome"
 
-OVERALL_STATUS=$?
+overall_status=$?
 
-# Clean up temporary decompressed files
+# ------- Clean Up Temporary Directory ------- #
 rm -rf "$tmp_decomp_dir"
 
-if [ "$OVERALL_STATUS" -ne 0 ]; then
+# ------- Final Output Check ------- #
+if [ "$overall_status" -ne 0 ]; then
     log_sep
     log_error "rsem-prepare-reference failed. See errors above."
     log_error "Pipeline Terminated with Errors."
-    exit $OVERALL_STATUS
+    exit $overall_status
 fi
 
 log_sep
-log_info "Outputs generated in $outDir"
+log_info "Outputs generated in $results"
 log_success "RSEM reference preparation completed successfully."
 log_success "Pipeline Terminated Successfully."
