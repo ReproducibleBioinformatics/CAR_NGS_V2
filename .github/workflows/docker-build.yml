@@ -33,6 +33,8 @@ jobs:
               - 'BulkRNASeq/skewer/**'
             rsemstarindex:
               - 'BulkRNASeq/rsemstarindex/**'
+            rsemstar:
+              - 'BulkRNASeq/rsemstar/**'
 
             # Append remaining 7 module filters here as needed
 
@@ -55,6 +57,10 @@ jobs:
           - name: docker4seq-rsemstarindex-v2
             path: BulkRNASeq/rsemstarindex
             filter: rsemstarindex
+          - name: docker4seq-rsemstar-v2
+            path: BulkRNASeq/rsemstar
+            filter: rsemstar
+
 
           # Append remaining 7 module entries here as needed
 
