@@ -139,10 +139,11 @@ log_info(sprintf("Chromosome selection method: %s", method))
 log_info(sprintf("Total sequences: %d | kept: %d | discarded: %d",
                  length(seq_ids), sum(keep), sum(!keep)))
 
-if (sum(!keep) > 0) {
+if (sum(!keep) > 0 && QUIET != "true") {
     log_info("Discarded sequences:")
-    invisible(mapply(function(n, l) log_info(sprintf("  - %s (%d bp)", n, l)),
-                      seq_ids[!keep], seq_lens[!keep]))
+    for (i in seq_along(seq_ids[!keep])) {
+        log_info(sprintf("  - %s (%d bp)", seq_ids[!keep][i], seq_lens[!keep][i]))
+    }
 }
 
 if (sum(keep) == 0) {
