@@ -4,28 +4,62 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'BulkRNASeq/**'
 
 permissions:
   contents: read
   packages: write
 
 jobs:
+  # Detect which module subfolders were actually modified in this push,
+  # so the build-and-push matrix below can skip untouched images.
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changes: ${{ steps.filter.outputs.changes }}
+    steps:
+      - name: Checkout repository source code
+        uses: actions/checkout@v4
+
+      - name: Detect changed module paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            qc_report:
+              - 'BulkRNASeq/qc_report/**'
+            skewer:
+              - 'BulkRNASeq/skewer/**'
+            rsemstarindex:
+              - 'BulkRNASeq/rsemstarindex/**'
+
+            # Append remaining 7 module filters here as needed
+
   build-and-push:
+    needs: detect-changes
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 1  
+      max-parallel: 1
       fail-fast: false
       matrix:
-        # Define module configuration mapping custom image names to directory paths
+        # Define module configuration mapping custom image names to directory paths.
+        # "filter" must match a key defined in the detect-changes job above.
         include:
           - name: docker4seq-qc_report-v2
             path: BulkRNASeq/qc_report
+            filter: qc_report
           - name: docker4seq-skewer-v2
             path: BulkRNASeq/skewer
+            filter: skewer
           - name: docker4seq-rsemstarindex-v2
             path: BulkRNASeq/rsemstarindex
+            filter: rsemstarindex
 
           # Append remaining 7 module entries here as needed
+
+    # Skip the whole job (checkout, build, push) if this module's path did not change
+    if: contains(fromJSON(needs.detect-changes.outputs.changes), matrix.filter)
 
     steps:
       - name: Checkout repository source code
