@@ -16,7 +16,7 @@ mount=/workDir
 
 [directory]
 name=outDir
-description=indicating the scratch folder where docker container will be mounted
+description=indicating the scratch folder where docker container will be mounted.
 mount=/results
 flag=out
 
