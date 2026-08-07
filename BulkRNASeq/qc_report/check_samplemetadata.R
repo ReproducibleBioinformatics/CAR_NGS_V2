@@ -108,7 +108,7 @@ validate_metadata <- function() {
   })
   
   # ------- 5. Check expected columns -------
-  expected_cols <- c("SampleName", "SampleFolder", "sampleNumber", "Batch", "Covariate", "VisName")
+  expected_cols <- c("SampleName", "SampleFolder", "SampleNumber", "Batch", "Covariate", "VisName")
   missing_cols <- setdiff(expected_cols, colnames(df))
   if (length(missing_cols) > 0) {
     exit_with_error(sprintf("Missing expected column(s): %s", paste(missing_cols, collapse = ", ")))
