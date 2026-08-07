@@ -16,12 +16,12 @@ get_timestamp <- function() {
 }
 
 log_info <- function(msg) {
-    if (exists("QUIET") && QUIET == "true") return()
+    if (exists("QUIET") && QUIET == "true") return(invisible(NULL))
     cat(sprintf("%s[%s] [%s INFO]    %s%s\n", CYAN, get_timestamp(), SCRIPT_NAME, msg, NC))
 }
 
 log_step <- function(msg) {
-    if (exists("QUIET") && QUIET == "true") return()
+    if (exists("QUIET") && QUIET == "true") return(invisible(NULL))
     cat(sprintf("%s[%s] [%s PROCESS] %s%s\n", YELLOW, get_timestamp(), SCRIPT_NAME, msg, NC))
 }
 
