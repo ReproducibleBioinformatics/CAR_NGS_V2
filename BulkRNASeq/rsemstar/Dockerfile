@@ -5,8 +5,10 @@ ENV TZ=Etc/UTC
 RUN apt-get update && apt-get install -y --no-install-recommends \
     r-base \
     perl \
+    build-essential \
+    zlib1g-dev \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*    
 
 COPY RSEM-1.3.3 /usr/local/bin/RSEM-1.3.3
 RUN chmod -R 755 /usr/local/bin/RSEM-1.3.3
