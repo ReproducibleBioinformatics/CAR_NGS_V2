@@ -1,16 +1,19 @@
 #!/bin/bash
 # ==============================================================================
-# Pipeline wrapper script for QC Report execution.
+# Pipeline wrapper script for Skewer execution.
 # All parameters, including folders, are hardcoded constants: no dynamic
 # output-folder search and no argument validation are performed.
 # ==============================================================================
-SCRIPT_NAME="test-qcreport"
+SCRIPT_NAME="test-skewer"
 
 # ------- Hardcoded Constants ------- #
 workdir="workdir"
-input_dir="../testdata/raw_data/"
+input_dir="raw_data/"
 results="results/"
-metadata="../testdata/raw_data/sampleMetaData.csv"
+adapter1="AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"
+adapter2="AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
+seq_type="pe"
+metadata="raw_data/sampleMetaData.csv"
 metadata_sep=","
 threads=10
 quiet="false"
@@ -32,27 +35,30 @@ echo -e "  ${CYAN}Script Name     :${NC} ${GREEN}${SCRIPT_NAME}${NC}"
 echo -e "  ${CYAN}Work Dir        :${NC} ${YELLOW}${workdir}${NC}"
 echo -e "  ${CYAN}Input Dir       :${NC} ${YELLOW}${input_dir}${NC}"
 echo -e "  ${CYAN}Results Dir     :${NC} ${YELLOW}${results}${NC}"
+echo -e "  ${CYAN}Adapter 1       :${NC} ${YELLOW}${adapter1}${NC}"
+echo -e "  ${CYAN}Adapter 2       :${NC} ${YELLOW}${adapter2}${NC}"
+echo -e "  ${CYAN}Seq Type        :${NC} ${YELLOW}${seq_type}${NC}"
 echo -e "  ${CYAN}Metadata        :${NC} ${YELLOW}${metadata}${NC}"
 echo -e "  ${CYAN}Metadata Sep    :${NC} '${YELLOW}${metadata_sep}${NC}'"
 echo -e "  ${CYAN}Threads         :${NC} ${YELLOW}${threads}${NC}"
 echo -e "  ${CYAN}Quiet Mode      :${NC} ${YELLOW}${quiet}${NC}"
 log_sep "=" "$CYAN"
-log_info "Initializing QC Report Pipeline Wrapper"
+log_info "Initializing Skewer Pipeline Wrapper"
 
 # ==============================================================================
 # EXIT CODE SCHEME
-# exit 1 -> failure of python3 qc_report.py execution
+# exit 1 -> failure of python3 skewer.py execution
 # ==============================================================================
 
-# ------- Core Processing Step: QC Report Execution ------- #
-log_step "Executing QC Report pipeline via Python wrapper..."
+# ------- Core Processing Step: Skewer Execution ------- #
+log_step "Executing Skewer pipeline via Python wrapper..."
 log_sep
 
-python3 qc_report.py "$workdir" "$input_dir" "$results" "$metadata" "$metadata_sep" "$threads" "$quiet"
+python3 skewer.py "$workdir" "$input_dir" "$results" "$adapter1" "$adapter2" "$seq_type" "$metadata" "$metadata_sep" "$threads" "$quiet"
 cmd_exit_code=$?
 
 if [ $cmd_exit_code -ne 0 ]; then
-    log_error "Python execution of qc_report.py failed with exit code $cmd_exit_code."
+    log_error "Python execution of skewer.py failed with exit code $cmd_exit_code."
     exit 1
 fi
 

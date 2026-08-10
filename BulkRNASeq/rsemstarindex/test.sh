@@ -1,18 +1,19 @@
 #!/bin/bash
 # ==============================================================================
-# Pipeline wrapper script for QC Report execution.
+# Pipeline wrapper script for RSEM-STAR Index execution.
 # All parameters, including folders, are hardcoded constants: no dynamic
 # output-folder search and no argument validation are performed.
 # ==============================================================================
-SCRIPT_NAME="test-qcreport"
+SCRIPT_NAME="test-rsemstarindex"
 
 # ------- Hardcoded Constants ------- #
 workdir="workdir"
-input_dir="../testdata/raw_data/"
 results="results/"
-metadata="../testdata/raw_data/sampleMetaData.csv"
-metadata_sep=","
-threads=10
+genome_fa="Genome/Drosophila_melanogaster.BDGP6.46.dna.toplevel.fa"
+gtf_file="Genome/Drosophila_melanogaster.BDGP6.46.112.gtf"
+mito_pattern="mito"
+chrom_pattern='^(2L|2R|3L|3R|4|X|Y)$'
+threads=8
 quiet="false"
 
 NC='\033[0m'; CYAN='\033[0;36m'; YELLOW='\033[1;33m'; ORANGE='\033[0;33m'; GREEN='\033[0;32m'; RED='\033[0;31m'
@@ -30,29 +31,30 @@ log_sep "=" "$CYAN"
 log_info "Pipeline Execution Context:"
 echo -e "  ${CYAN}Script Name     :${NC} ${GREEN}${SCRIPT_NAME}${NC}"
 echo -e "  ${CYAN}Work Dir        :${NC} ${YELLOW}${workdir}${NC}"
-echo -e "  ${CYAN}Input Dir       :${NC} ${YELLOW}${input_dir}${NC}"
 echo -e "  ${CYAN}Results Dir     :${NC} ${YELLOW}${results}${NC}"
-echo -e "  ${CYAN}Metadata        :${NC} ${YELLOW}${metadata}${NC}"
-echo -e "  ${CYAN}Metadata Sep    :${NC} '${YELLOW}${metadata_sep}${NC}'"
+echo -e "  ${CYAN}Genome FASTA    :${NC} ${YELLOW}${genome_fa}${NC}"
+echo -e "  ${CYAN}GTF File        :${NC} ${YELLOW}${gtf_file}${NC}"
+echo -e "  ${CYAN}Mito Pattern    :${NC} ${YELLOW}${mito_pattern}${NC}"
+echo -e "  ${CYAN}Chrom Pattern   :${NC} '${YELLOW}${chrom_pattern}${NC}'"
 echo -e "  ${CYAN}Threads         :${NC} ${YELLOW}${threads}${NC}"
 echo -e "  ${CYAN}Quiet Mode      :${NC} ${YELLOW}${quiet}${NC}"
 log_sep "=" "$CYAN"
-log_info "Initializing QC Report Pipeline Wrapper"
+log_info "Initializing RSEM-STAR Index Pipeline Wrapper"
 
 # ==============================================================================
 # EXIT CODE SCHEME
-# exit 1 -> failure of python3 qc_report.py execution
+# exit 1 -> failure of python3 rsemstarindex.py execution
 # ==============================================================================
 
-# ------- Core Processing Step: QC Report Execution ------- #
-log_step "Executing QC Report pipeline via Python wrapper..."
+# ------- Core Processing Step: RSEM-STAR Index Execution ------- #
+log_step "Executing RSEM-STAR Index pipeline via Python wrapper..."
 log_sep
 
-python3 qc_report.py "$workdir" "$input_dir" "$results" "$metadata" "$metadata_sep" "$threads" "$quiet"
+python3 rsemstarindex.py "$workdir" "$results" "$genome_fa" "$gtf_file" "$mito_pattern" "$chrom_pattern" "$threads" "$quiet"
 cmd_exit_code=$?
 
 if [ $cmd_exit_code -ne 0 ]; then
-    log_error "Python execution of qc_report.py failed with exit code $cmd_exit_code."
+    log_error "Python execution of rsemstarindex.py failed with exit code $cmd_exit_code."
     exit 1
 fi
 
