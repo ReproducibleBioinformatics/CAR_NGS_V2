@@ -24,6 +24,7 @@ log_error() { echo -e "${RED}[$(date '+%Y-%m-%d %H:%M:%S')] [${SCRIPT_NAME} ERRO
 log_sep() { [ "$QUIET" == "true" ] && return; echo -e "${2:-$CYAN}$(printf '%0.s'${1:-=} {1..100})${NC}"; }
 
 QUIET="$quiet"
+mkdir -p "$workdir" "$results"
 
 # ------- Function to Find Highest Output Directory ------- #
 get_latest_output_dir() {
