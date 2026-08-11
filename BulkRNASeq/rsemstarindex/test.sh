@@ -9,8 +9,8 @@ SCRIPT_NAME="test-rsemstarindex"
 # ------- Hardcoded Constants ------- #
 workdir="workdir"
 results="results/"
-genome_fa="Genome/Drosophila_melanogaster.BDGP6.46.dna.toplevel.fa"
-gtf_file="Genome/Drosophila_melanogaster.BDGP6.46.112.gtf"
+genome_fa="../Genome/Drosophila_melanogaster.BDGP6.46.dna.toplevel.fa"
+gtf_file="../Genome/Drosophila_melanogaster.BDGP6.46.112.gtf"
 mito_pattern="mito"
 chrom_pattern='^(2L|2R|3L|3R|4|X|Y)$'
 threads=8
