@@ -15,6 +15,7 @@ mito_pattern="mito"
 chrom_pattern='^(2L|2R|3L|3R|4|X|Y)$'
 threads=8
 quiet="false"
+mkdir -p "$workdir" "$results"
 
 NC='\033[0m'; CYAN='\033[0;36m'; YELLOW='\033[1;33m'; ORANGE='\033[0;33m'; GREEN='\033[0;32m'; RED='\033[0;31m'
 log_info() { [ "$QUIET" == "true" ] && return; echo -e "${CYAN}[$(date '+%Y-%m-%d %H:%M:%S')] [${SCRIPT_NAME} INFO]    ${1}${NC}"; }
