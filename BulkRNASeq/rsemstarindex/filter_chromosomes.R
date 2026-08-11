@@ -4,40 +4,12 @@
 SCRIPT_NAME <- "filter_chromosomes.R"
 
 CYAN <- "\033[0;36m"; YELLOW <- "\033[1;33m"; ORANGE <- "\033[0;33m"; GREEN <- "\033[0;32m"; RED <- "\033[0;31m"; NC <- "\033[0m"
-
-get_timestamp <- function() {
-    format(Sys.time(), "%Y-%m-%d %H:%M:%S")
-}
-
-# ------- All non-error loggers are silenced when QUIET is TRUE ------- #
-log_info <- function(msg) {
-    if (exists("QUIET") && isTRUE(QUIET)) return(invisible(NULL))
-    cat(sprintf("%s[%s] [%s INFO]    %s%s\n", CYAN, get_timestamp(), SCRIPT_NAME, msg, NC))
-}
-
-log_step <- function(msg) {
-    if (exists("QUIET") && isTRUE(QUIET)) return(invisible(NULL))
-    cat(sprintf("%s[%s] [%s PROCESS] %s%s\n", YELLOW, get_timestamp(), SCRIPT_NAME, msg, NC))
-}
-
-log_warn <- function(msg) {
-    if (exists("QUIET") && isTRUE(QUIET)) return(invisible(NULL))
-    cat(sprintf("%s[%s] [%s WARNING] %s%s\n", ORANGE, get_timestamp(), SCRIPT_NAME, msg, NC))
-}
-
-log_success <- function(msg) {
-    if (exists("QUIET") && isTRUE(QUIET)) return(invisible(NULL))
-    cat(sprintf("%s[%s] [%s SUCCESS] %s%s\n", GREEN, get_timestamp(), SCRIPT_NAME, msg, NC))
-}
-
-# ------- log_error is ALWAYS shown, even in quiet mode ------- #
-log_error <- function(msg) {
-    cat(sprintf("%s[%s] [%s ERROR]   %s%s\n", RED, get_timestamp(), SCRIPT_NAME, msg, NC), file = stderr())
-}
-
-log_sep <- function(char = "=", color = CYAN) {
-    cat(sprintf("%s%s%s\n", color, paste(rep(char, 100), collapse = ""), NC))
-}
+log_info <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s INFO]    %s%s\n", CYAN, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_step <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s PROCESS] %s%s\n", YELLOW, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_warn <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s WARNING] %s%s\n", ORANGE, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_success <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s SUCCESS] %s%s\n", GREEN, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_error <- function(msg) { cat(sprintf("%s[%s] [%s ERROR]   %s%s\n", RED, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC), file = stderr()) }
+log_sep <- function(char = "=", color = CYAN) { cat(sprintf("%s%s%s\n", color, paste(rep(char, 100), collapse = ""), NC))}
 
 show_usage <- function() {
     log_sep("-", YELLOW)

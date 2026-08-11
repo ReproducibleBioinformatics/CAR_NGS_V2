@@ -5,26 +5,18 @@
 # ------- Supports both GTF (key "value") and GFF3 (key=value) attribute formats. ------- #
 
 # ------- ANSI Color Codes for CLI Output ------- #
-RED    <- "\033[0;31m"
-GREEN  <- "\033[0;32m"
-YELLOW <- "\033[0;33m"
-BLUE   <- "\033[0;34m"
-NC     <- "\033[0m" # No Color
+CYAN <- "\033[0;36m"; YELLOW <- "\033[1;33m"; ORANGE <- "\033[0;33m"; GREEN <- "\033[0;32m"; RED <- "\033[0;31m"; NC <- "\033[0m"
 
 # ------- Default Global Configuration ------- #
 QUIET <- FALSE
 
-log_info <- function(msg) {
-  if (!QUIET) cat(paste0(BLUE, "[INFO] ", NC, msg, "\n"))
-}
-
-log_warn <- function(msg) {
-  if (!QUIET) cat(paste0(YELLOW, "[WARN] ", NC, msg, "\n"))
-}
-
-log_error <- function(msg) {
-  cat(paste0(RED, "[ERROR] ", NC, msg, "\n"), file = stderr())
-}
+CYAN <- "\033[0;36m"; YELLOW <- "\033[1;33m"; ORANGE <- "\033[0;33m"; GREEN <- "\033[0;32m"; RED <- "\033[0;31m"; NC <- "\033[0m"
+log_info <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s INFO]    %s%s\n", CYAN, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_step <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s PROCESS] %s%s\n", YELLOW, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_warn <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s WARNING] %s%s\n", ORANGE, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_success <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s SUCCESS] %s%s\n", GREEN, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_error <- function(msg) { cat(sprintf("%s[%s] [%s ERROR]   %s%s\n", RED, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC), file = stderr()) }
+log_sep <- function(char = "=", color = CYAN) { cat(sprintf("%s%s%s\n", color, paste(rep(char, 100), collapse = ""), NC))}
 
 show_usage <- function() {
   cat("Usage: Rscript extract_gene_mapping.R <annotation_file> <target_biotype> <output_tsv> [threads] [quiet]\n")
@@ -57,7 +49,7 @@ extract_attribute <- function(attr_strings, keys, is_gff3 = FALSE) {
       pattern <- paste0('(?:^|;)\\s*', key, '\\s+"([^"]+)"')
     }
     
-    # Usa regexec + regmatches di R base (PCRE = TRUE) invece di stringi
+    # Usa regexec + regmatches di R base (PCRE = TRUE)
     m <- regexec(pattern, sub_attr, perl = TRUE)
     matches <- regmatches(sub_attr, m)
     
@@ -128,11 +120,10 @@ main <- function() {
       header = FALSE,
       select = c(3, 9),
       col.names = c("feature", "attributes"),
-      comment.char = "#",
       quote = "",
       fill = TRUE,
       showProgress = FALSE
-    )
+    )[!startsWith(feature, "#")] # Rimuove le righe di commento direttamente dal data.table
   }, error = function(e) {
     log_error(paste("Failed to read annotation file with fread:", e$message))
     quit(status = 1)

@@ -10,23 +10,13 @@ suppressMessages(library(data.table))
 # ------- Constants and Logging Helpers ------- #
 SCRIPT_NAME <- "generate_expression_tables.R"
 
-NC     <- "\033[0m"
-CYAN   <- "\033[0;36m"
-YELLOW <- "\033[1;33m"
-ORANGE <- "\033[0;33m"
-GREEN  <- "\033[0;32m"
-RED    <- "\033[0;31m"
-
-log_info    <- function(msg) { if (tolower(QUIET) == "true") return(); cat(paste0(CYAN,   "[", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "] [", SCRIPT_NAME, " INFO]    ", msg, NC, "\n")) }
-log_step    <- function(msg) { if (tolower(QUIET) == "true") return(); cat(paste0(YELLOW, "[", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "] [", SCRIPT_NAME, " PROCESS] ", msg, NC, "\n")) }
-log_warn    <- function(msg) { if (tolower(QUIET) == "true") return(); cat(paste0(ORANGE, "[", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "] [", SCRIPT_NAME, " WARNING] ", msg, NC, "\n")) }
-log_success <- function(msg) { if (tolower(QUIET) == "true") return(); cat(paste0(GREEN,  "[", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "] [", SCRIPT_NAME, " SUCCESS] ", msg, NC, "\n")) }
-log_error   <- function(msg) { cat(paste0(RED,    "[", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "] [", SCRIPT_NAME, " ERROR]   ", msg, NC, "\n"), file = stderr()) }
-
-log_sep <- function(char = "=", color = CYAN) {
-  if (tolower(QUIET) == "true") return()
-  cat(paste0(color, paste(rep(char, 100), collapse = ""), NC, "\n"))
-}
+CYAN <- "\033[0;36m"; YELLOW <- "\033[1;33m"; ORANGE <- "\033[0;33m"; GREEN <- "\033[0;32m"; RED <- "\033[0;31m"; NC <- "\033[0m"
+log_info <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s INFO]    %s%s\n", CYAN, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_step <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s PROCESS] %s%s\n", YELLOW, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_warn <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s WARNING] %s%s\n", ORANGE, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_success <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s SUCCESS] %s%s\n", GREEN, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_error <- function(msg) { cat(sprintf("%s[%s] [%s ERROR]   %s%s\n", RED, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC), file = stderr()) }
+log_sep <- function(char = "=", color = CYAN) { cat(sprintf("%s%s%s\n", color, paste(rep(char, 100), collapse = ""), NC))}
 
 show_usage <- function() {
   log_sep("-", YELLOW)
