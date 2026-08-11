@@ -4,10 +4,7 @@
 # ------- Description: Extracts gene ID to gene Name and Biotype mapping from GTF/GFF3 files. ------- #
 # ------- Supports both GTF (key "value") and GFF3 (key=value) attribute formats. ------- #
 
-# ------- ANSI Color Codes for CLI Output ------- #
 SCRIPT_NAME <- "extract_gene_mapping.R"
-
-# ------- Default Global Configuration ------- #
 QUIET <- FALSE
 
 CYAN <- "\033[0;36m"; YELLOW <- "\033[1;33m"; ORANGE <- "\033[0;33m"; GREEN <- "\033[0;32m"; RED <- "\033[0;31m"; NC <- "\033[0m"
@@ -120,10 +117,11 @@ main <- function() {
       header = FALSE,
       select = c(3, 9),
       col.names = c("feature", "attributes"),
+      skip = "#",           # Salta le righe iniziali che iniziano con #
       quote = "",
       fill = TRUE,
       showProgress = FALSE
-    )[!startsWith(feature, "#")] # Rimuove le righe di commento direttamente dal data.table
+    )
   }, error = function(e) {
     log_error(paste("Failed to read annotation file with fread:", e$message))
     quit(status = 1)
