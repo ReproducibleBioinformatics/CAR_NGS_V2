@@ -22,8 +22,8 @@ modules=(
     "qc_report"
     "skewer"
     "rsemstarindex"
-    "rsem"
-    "annotated"
+    "rsemstar"
+    "annotation"
     "pca"
     "deseq2"
     "filter"
@@ -50,11 +50,6 @@ log_sep
 step_num=1
 for mod in "${modules[@]}"; do
     mod_dir="${base_dir}/${mod}"
-
-    # Handle fallback if 'rsem' directory is named 'rsemstar'
-    if [ ! -d "$mod_dir" ] && [ "$mod" == "rsem" ] && [ -d "${base_dir}/rsemstar" ]; then
-        mod_dir="${base_dir}/rsemstar"
-    fi
 
     if [ ! -d "$mod_dir" ]; then
         log_warn "Module directory '${mod_dir}' does not exist. Skipping step ${step_num}."

@@ -14,7 +14,7 @@ The pipeline is composed of the following steps, executed in order:
 2. **skewer** – Trims adapters/low-quality bases from the FASTQ files (single-end or paired-end) and produces an updated sample metadata file for downstream steps.
 3. **rsemstarindex** – Builds the RSEM/STAR reference index starting from a genome FASTA and a GTF annotation file, with optional filtering of chromosomes and mitochondrial DNA.
 4. **rsem** – Aligns reads with STAR and quantifies gene/isoform expression with RSEM, using the reference index built in the previous step.
-5. **annotated** – Extracts gene annotations from the GTF file and aggregates the RSEM quantification output into final expression matrices (counts, FPKM, TPM).
+5. **annotation** – Extracts gene annotations from the GTF file and aggregates the RSEM quantification output into final expression matrices (counts, FPKM, TPM).
 6. **pca** – Performs principal component analysis on the expression matrices, either with a standard approach or with DESeq2's variance-stabilizing transformation (VST).
 7. **deseq2** – Runs differential expression analysis with DESeq2 on raw count matrices, applying Log2 Fold Change and FDR thresholds.
 8. **filter** – Filters the DESeq2 output by Log2 Fold Change and FDR, extracting the significant gene list together with the corresponding raw/normalized count submatrices.
@@ -77,7 +77,7 @@ Performs alignment via STAR and gene/isoform expression quantification via RSEM,
 * **strandness** – RNA-Seq strand specificity: `none`, `forward`, or `reverse`.
 * **savebam** – optional flag (`true`/`false`) to keep or discard the generated BAM alignment files.
 
-### annotated
+### annotation
 
 Extracts gene annotations from the GTF file and aggregates the RSEM quantification output, filtering by the specified biotype and summarizing counts, FPKM and TPM (at gene and isoform level) into expression matrices in text and RData format.
 

@@ -73,6 +73,7 @@ if ! [[ "$threads" =~ ^[0-9]+$ ]] || [ "$threads" -le 0 ]; then
     log_error "The threads parameter must be a positive integer (provided: '$threads')"
     exit 1
 fi
+export OMP_NUM_THREADS=$threads
 
 # ------- Optimize Threads Allocation ------- #
 max_cores=$(nproc)

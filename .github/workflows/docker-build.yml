@@ -35,8 +35,8 @@ jobs:
               - 'BulkRNASeq/rsemstarindex/**'
             rsemstar:
               - 'BulkRNASeq/rsemstar/**'
-
-            # Append remaining 7 module filters here as needed
+            annotation:
+              - 'BulkRNASeq/annotation/**'
 
   build-and-push:
     needs: detect-changes
@@ -60,9 +60,11 @@ jobs:
           - name: docker4seq-rsemstar-v2
             path: BulkRNASeq/rsemstar
             filter: rsemstar
+          - name: docker4seq-annotation-v2
+            path: BulkRNASeq/annotation
+            filter: annotation
 
 
-          # Append remaining 7 module entries here as needed
 
     steps:
       # Every step below is skipped (shown as "skipped", not failed) when this

@@ -78,6 +78,7 @@ if [ "$threads" -gt "$max_cores" ]; then
     log_warn "Requested threads ($threads) exceed available CPU cores ($max_cores). Capping allocation to $max_cores."
     threads=$max_cores
 fi
+export OMP_NUM_THREADS=$threads
 
 # ------- Check Results Directory ------- #
 # Always call the destination directory "Results directory" in BOTH checks
