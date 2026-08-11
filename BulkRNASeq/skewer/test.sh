@@ -8,12 +8,12 @@ SCRIPT_NAME="test-skewer"
 
 # ------- Hardcoded Constants ------- #
 workdir="workdir"
-input_dir="../raw_data/"
+input_dir="../testdata/raw_data/"
 results="results/"
 adapter1="AGATCGGAAGAGCACACGTCTGAACTCCAGTCA"
 adapter2="AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
 seq_type="pe"
-metadata="../raw_data/sampleMetaData.csv"
+metadata="../testdata/raw_data/sampleMetaData.csv"
 metadata_sep=","
 threads=10
 quiet="false"

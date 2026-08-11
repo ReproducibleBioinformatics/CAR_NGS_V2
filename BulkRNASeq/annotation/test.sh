@@ -8,11 +8,10 @@ SCRIPT_NAME="test-annotation"
 
 # ------- Hardcoded Constants ------- #
 workdir="workdir"
-input_dir="../rsem_results"
+input_dir="../rsem/results"
 results="results/"
-annotation_file="../Genome/Drosophila_melanogaster.BDGP6.46.112.gtf"
+annotation_file="../testdata/Genome/Drosophila_melanogaster.BDGP6.46.112.gtf"
 gene_biotype="protein_coding"
-metadata="metadata.csv"
 metadata_sep=","
 threads=8
 quiet="false"
@@ -52,6 +51,35 @@ log_info "Initializing Annotation Pipeline Wrapper"
 # ------- Core Processing Step: Annotation Execution ------- #
 log_step "Executing Annotation pipeline via Python wrapper..."
 log_sep
+
+# ------- Function to Find Highest Output Directory ------- #
+get_latest_output_dir() {
+    local base_dir="${1}"
+    local max_num=-1
+    local latest_dir=""
+
+    if [ ! -d "$base_dir" ]; then
+        echo ""
+        return
+    fi
+
+    for dir in "${base_dir}"/output*; do
+        if [ -d "$dir" ]; then
+            folder_name=$(basename "$dir")
+            num="${folder_name#output}"
+            if [[ "$num" =~ ^[0-9]+$ ]] && [ "$num" -gt "$max_num" ]; then
+                max_num=$num
+                latest_dir="$dir"
+            fi
+        fi
+    done
+
+    echo "$latest_dir"
+}
+
+# ------- Resolve Dynamic Paths (skewer and rsemstarindex) ------- #
+input_dir=$(get_latest_output_dir "../rsemstar/results")
+metadata="${input_dir}/sampleMetaData_rsemstar.csv"
 
 python3 annotation.py "$workdir" "$input_dir" "$results" "$annotation_file" "$gene_biotype" "$metadata" "$metadata_sep" "$threads" "$quiet"
 cmd_exit_code=$?
