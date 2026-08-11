@@ -244,9 +244,9 @@ main <- function() {
   biotypes[is.na(biotypes) | biotypes == ""] <- "unknown"
 
   res_dt <- data.table::data.table(
-    gene_id   = gene_ids,
-    gene_name = gene_names,
-    biotype   = biotypes
+    gene_id      = gene_ids,
+    gene_name    = gene_names,
+    gene_biotype = biotypes
   )
 
   res_dt <- unique(res_dt[!is.na(gene_id) & gene_id != ""])
@@ -254,7 +254,7 @@ main <- function() {
   log_info(paste("Extracted", nrow(res_dt), "unique gene entries."))
 
   if (tolower(target_biotype) != "all") {
-    res_dt <- res_dt[tolower(biotype) == tolower(target_biotype)]
+    res_dt <- res_dt[tolower(gene_biotype) == tolower(target_biotype)]
     log_info(paste0("Filtering by biotype '", target_biotype, "': ", nrow(res_dt), " genes retained."))
   }
 
