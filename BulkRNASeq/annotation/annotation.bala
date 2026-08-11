@@ -1,0 +1,57 @@
+[research]
+description=This Docker image annotates RSEM genes.results output files with gene symbols/names retrieved from a matching GTF/GFF3 annotation file, batch-processing all samples in an input directory and writing the annotated TSV files to a specified output directory.
+name=annotation
+#
+[run]
+command=docker run --rm
+script= bash /home/start.sh
+image= ghcr.io/reproduciblebioinformatics/docker4seq-annotation-v2:latest
+usage= <workDir> <inputDir> <outDir> <annotation_file> <gene_biotype> <metadata> <metadata_sep> <threads> <quiet>
+#
+[directory]
+name=workDir
+description=indicating the working folder
+flag=io
+mount=/workDir
+#
+[directory]
+name=inputDir
+description=indicating where genes.results files are located
+flag=in
+mount=/data_results
+#
+[directory]
+name=outDir
+description=indicating the folder where results will be written
+mount=/results
+flag=out
+
+[file]
+name = annotation_file
+description = gene annotation file (GTF or GFF3 format) used to map gene IDs to gene names/symbols.
+flag=cp
+
+[parameter]
+name = gene_biotype
+values = "protein_coding","unitary_pseudogene","unprocessed_pseudogene","processed_pseudogene","transcribed_unprocessed_pseudogene","processed_transcript","antisense","transcribed_unitary_pseudogene","polymorphic_pseudogene","lincRNA","sense_intronic","transcribed_processed_pseudogene","sense_overlapping","IG_V_pseudogene","pseudogene","TR_V_gene","3prime_overlapping_ncRNA","IG_V_gene","bidirectional_promoter_lncRNA","snRNA","miRNA","misc_RNA","snoRNA","rRNA","IG_C_gene","IG_J_gene","TR_J_gene","TR_C_gene","TR_V_pseudogene","TR_J_pseudogene","IG_D_gene","ribozyme","IG_C_pseudogene","TR_D_gene","TEC","IG_J_pseudogene","scRNA","scaRNA","vaultRNA","sRNA","macro_lncRNA","non_coding","IG_pseudogene"
+description = gene biotype 
+
+[file]
+name=metadata
+flag=cp
+description = A CSV or TSV file containing metadata for files in the input director
+
+[parameter]
+name=metadata_sep
+values=',',';','\t','tab'
+description = File separator (use "," or ";" for CSV, "\t" ora "tab" for TSV)
+
+[parameter]
+name = threads
+value = 10
+description = a number indicating the number of cores to be used from the application
+
+[parameter]
+name = quiet
+values = false,true
+description = Set to "true" to suppress tool processing messages, set to "false" to keep verbose logging enabled.
