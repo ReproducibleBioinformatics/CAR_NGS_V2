@@ -41,7 +41,7 @@ url_decode <- function(str) {
   utils::URLdecode(str)
 }
 
-# ------- Robust Attribute Extractor for GTF/GFF3 ------- #
+# ------- Robust Attribute Extractor using Base R Regex ------- #
 extract_attribute <- function(attr_strings, keys, is_gff3 = FALSE) {
   result <- rep(NA_character_, length(attr_strings))
   
@@ -53,13 +53,17 @@ extract_attribute <- function(attr_strings, keys, is_gff3 = FALSE) {
     
     if (is_gff3) {
       pattern <- paste0("(?:^|;)\\s*", key, "=([^;]+)")
-      matches <- stringi::stri_match_first_regex(sub_attr, pattern)
-      extracted <- matches[, 2]
     } else {
       pattern <- paste0('(?:^|;)\\s*', key, '\\s+"([^"]+)"')
-      matches <- stringi::stri_match_first_regex(sub_attr, pattern)
-      extracted <- matches[, 2]
     }
+    
+    # Usa regexec + regmatches di R base (PCRE = TRUE) invece di stringi
+    m <- regexec(pattern, sub_attr, perl = TRUE)
+    matches <- regmatches(sub_attr, m)
+    
+    extracted <- sapply(matches, function(x) {
+      if (length(x) > 1) x[2] else NA_character_
+    })
     
     if (any(!is.na(extracted))) {
       if (is_gff3) {
@@ -76,13 +80,11 @@ extract_attribute <- function(attr_strings, keys, is_gff3 = FALSE) {
 main <- function() {
   args <- commandArgs(trailingOnly = TRUE)
   
-  # Accetta da 3 a 5 argomenti
   if (length(args) < 3 || length(args) > 5) {
     show_usage()
     quit(status = 1)
   }
   
-  # Allineamento parametri con lo script Bash
   annotation_file <- args[1]
   target_biotype  <- args[2]
   output_tsv      <- args[3]
@@ -102,17 +104,12 @@ main <- function() {
     quit(status = 1)
   }
   
-  # Check e caricamento dei pacchetti richiesti
-  if (!requireNamespace("stringi", quietly = TRUE)) {
-    log_info("Installing required package 'stringi'...")
-    install.packages("stringi", repos = "https://cloud.r-project.org")
-  }
+  # Check e caricamento del solo pacchetto data.table
   if (!requireNamespace("data.table", quietly = TRUE)) {
     log_info("Installing required package 'data.table'...")
     install.packages("data.table", repos = "https://cloud.r-project.org")
   }
   
-  # Impostazione del multithreading per le operazioni compatibili
   data.table::setDTthreads(threads)
   log_info(paste("Using", threads, "thread(s)"))
   log_info(paste("Processing annotation file:", annotation_file))
@@ -123,37 +120,39 @@ main <- function() {
   
   log_info(paste("Detected format:", ifelse(is_gff3, "GFF3", "GTF")))
   
-  # Load annotation file
-  con <- if (endsWith(annotation_file, ".gz")) gzfile(annotation_file, "r") else file(annotation_file, "r")
-  lines <- readLines(con)
-  close(con)
+  # Lettura veloce tramite fread delle colonne V3 (feature type) e V9 (attributes)
+  dt <- tryCatch({
+    data.table::fread(
+      file = annotation_file,
+      sep = "\t",
+      header = FALSE,
+      select = c(3, 9),
+      col.names = c("feature", "attributes"),
+      comment.char = "#",
+      quote = "",
+      fill = TRUE,
+      showProgress = FALSE
+    )
+  }, error = function(e) {
+    log_error(paste("Failed to read annotation file with fread:", e$message))
+    quit(status = 1)
+  })
   
-  lines <- lines[!startsWith(lines, "#") & nchar(trimws(lines)) > 0]
-  
-  if (length(lines) == 0) {
+  if (nrow(dt) == 0) {
     log_error("Annotation file contains no valid data lines.")
     quit(status = 1)
   }
   
-  log_info(paste("Parsing", length(lines), "feature lines..."))
+  log_info(paste("Parsed", nrow(dt), "feature lines."))
   
-  split_cols <- stringi::stri_split_fixed(lines, "\t", n = 9)
+  # Filtraggio delle linee 'gene'
+  gene_dt <- dt[tolower(feature) == "gene"]
   
-  valid_lines <- sapply(split_cols, length) == 9
-  if (!all(valid_lines)) {
-    log_warn(paste("Skipping", sum(!valid_lines), "malformed lines."))
-    split_cols <- split_cols[valid_lines]
-  }
-  
-  feature_types <- sapply(split_cols, `[`, 3)
-  attr_strings  <- sapply(split_cols, `[`, 9)
-  
-  gene_indices <- which(tolower(feature_types) == "gene")
-  
-  if (length(gene_indices) > 0) {
-    attr_strings <- attr_strings[gene_indices]
+  if (nrow(gene_dt) > 0) {
+    attr_strings <- gene_dt$attributes
   } else {
     log_warn("No features of type 'gene' found. Parsing attributes across all records.")
+    attr_strings <- dt$attributes
   }
   
   if (is_gff3) {
@@ -179,29 +178,26 @@ main <- function() {
   
   biotypes[is.na(biotypes) | biotypes == ""] <- "unknown"
   
-  df <- data.frame(
+  res_dt <- data.table::data.table(
     gene_id   = gene_ids,
     gene_name = gene_names,
-    biotype   = biotypes,
-    stringsAsFactors = FALSE
+    biotype   = biotypes
   )
   
-  df <- df[!is.na(df$gene_id) & df$gene_id != "", ]
-  df <- unique(df)
+  res_dt <- unique(res_dt[!is.na(gene_id) & gene_id != ""])
   
-  log_info(paste("Extracted", nrow(df), "unique gene entries."))
+  log_info(paste("Extracted", nrow(res_dt), "unique gene entries."))
   
   if (tolower(target_biotype) != "all") {
-    df_filtered <- df[tolower(df$biotype) == tolower(target_biotype), ]
-    log_info(paste0("Filtering by biotype '", target_biotype, "': ", nrow(df_filtered), " genes retained."))
-    df <- df_filtered
+    res_dt <- res_dt[tolower(biotype) == tolower(target_biotype)]
+    log_info(paste0("Filtering by biotype '", target_biotype, "': ", nrow(res_dt), " genes retained."))
   }
   
-  if (nrow(df) == 0) {
+  if (nrow(res_dt) == 0) {
     log_warn("Warning: The resulting mapping table is empty after filtering!")
   }
   
-  write.table(df, file = output_tsv, sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
+  data.table::fwrite(res_dt, file = output_tsv, sep = "\t", quote = FALSE, row.names = FALSE, col.names = TRUE)
   log_info(paste0(GREEN, "Successfully saved mapping table to: ", output_tsv, NC))
 }
 
