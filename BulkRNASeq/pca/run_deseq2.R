@@ -9,8 +9,8 @@ log_info <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf(
 log_step <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s PROCESS] %s%s\n", YELLOW, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
 log_warn <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s WARNING] %s%s\n", ORANGE, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
 log_success <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s SUCCESS] %s%s\n", GREEN, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_sep <- function(char = "=", color = CYAN, ...) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s%s%s\n", color, paste(rep(char, 100), collapse = ""), NC)) }
 log_error <- function(msg) { cat(sprintf("%s[%s] [%s ERROR]   %s%s\n", RED, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC), file = stderr()) }
-log_sep <- function(char = "=", color = CYAN) { cat(sprintf("%s%s%s\n", color, paste(rep(char, 100), collapse = ""), NC))}
 
 show_usage <- function() {
   log_sep("-", YELLOW)
@@ -74,7 +74,7 @@ if (!mode %in% c("deseq", "deseqnormalized")) {
 }
 
 # ------- Print Pipeline Execution Context ------- #
-log_sep("=", CYAN, quiet)
+log_sep("=", CYAN)
 log_info("Pipeline Execution Context:", quiet)
 cat(sprintf("  %sScript Name      :%s %s%s%s\n", CYAN, NC, GREEN, SCRIPT_NAME, NC))
 cat(sprintf("  %sInput File       :%s %s%s%s\n", CYAN, NC, YELLOW, input_file, NC))
@@ -85,7 +85,7 @@ cat(sprintf("  %sResults Dir      :%s %s%s%s\n", CYAN, NC, YELLOW, results, NC))
 cat(sprintf("  %sMode             :%s %s%s%s\n", CYAN, NC, YELLOW, mode, NC))
 cat(sprintf("  %sThreads          :%s %s%s%s\n", CYAN, NC, YELLOW, threads, NC))
 cat(sprintf("  %sQuiet Mode       :%s %s%s%s\n", CYAN, NC, YELLOW, quiet, NC))
-log_sep("=", CYAN, quiet)
+log_sep("=", CYAN)
 log_info("Initializing DESeq2 Pipeline Wrapper", quiet)
 
 # ------- Validate Threads Parameter ------- #
@@ -286,5 +286,5 @@ if (mode == "deseq") {
   })
 }
 
-log_sep("=", CYAN, quiet)
+log_sep("=", CYAN)
 log_success("Pipeline Terminated Successfully.", quiet)

@@ -4,7 +4,7 @@
 # All parameters, including folders, are hardcoded constants: no dynamic
 # output-folder search and no argument validation are performed.
 # ==============================================================================
-SCRIPT_NAME="test-annotation"
+SCRIPT_NAME="test-pca"
 
 # ------- Hardcoded Constants ------- #
 workdir="workdir"
@@ -27,22 +27,6 @@ log_error() { echo -e "${RED}[$(date '+%Y-%m-%d %H:%M:%S')] [${SCRIPT_NAME} ERRO
 log_sep() { [ "$QUIET" == "true" ] && return; echo -e "${2:-$CYAN}$(printf '%0.s'${1:-=} {1..100})${NC}"; }
 
 QUIET="$quiet"
-
-# ------- Print Pipeline Execution Context ------- #
-log_sep "=" "$CYAN"
-log_info "Pipeline Execution Context:"
-echo -e "  ${CYAN}Script Name     :${NC} ${GREEN}${SCRIPT_NAME}${NC}"
-echo -e "  ${CYAN}Work Dir        :${NC} ${YELLOW}${workdir}${NC}"
-echo -e "  ${CYAN}Input Dir       :${NC} ${YELLOW}${input_dir}${NC}"
-echo -e "  ${CYAN}Results Dir     :${NC} ${YELLOW}${results}${NC}"
-echo -e "  ${CYAN}Annotation File :${NC} ${YELLOW}${annotation_file}${NC}"
-echo -e "  ${CYAN}Gene Biotype    :${NC} ${YELLOW}${gene_biotype}${NC}"
-echo -e "  ${CYAN}Metadata        :${NC} ${YELLOW}${metadata}${NC}"
-echo -e "  ${CYAN}Metadata Sep    :${NC} '${YELLOW}${metadata_sep}${NC}'"
-echo -e "  ${CYAN}Threads         :${NC} ${YELLOW}${threads}${NC}"
-echo -e "  ${CYAN}Quiet Mode      :${NC} ${YELLOW}${quiet}${NC}"
-log_sep "=" "$CYAN"
-log_info "Initializing Annotation Pipeline Wrapper"
 
 # ==============================================================================
 # EXIT CODE SCHEME
@@ -78,11 +62,30 @@ get_latest_output_dir() {
     echo "$latest_dir"
 }
 
-input_dir=$(get_latest_output_dir "../annotated/results")
-metadata="${input_dir}/sampleMetaData_annotated.csv"
+input_dir=$(get_latest_output_dir "../annotation/results")
+metadata="${input_dir}/sampleMetaData_annotation.csv"
 matrix_path="${input_dir}/experiment_isoforms_log2FPKM.txt"
 
-python3 pca "$workdir" "$results" "$matrix_path" "$matrix_sep" "$metadata" "$metadata_sep" "$pca_type" "$log_transform" "$remove_zero_var" "$threads" "$quiet"
+# ------- Print Pipeline Execution Context ------- #
+log_sep "=" "$CYAN"
+log_info "Pipeline Execution Context:"
+echo -e "  ${CYAN}Script Name     :${NC} ${GREEN}${SCRIPT_NAME}${NC}"
+echo -e "  ${CYAN}Work Dir        :${NC} ${YELLOW}${workdir}${NC}"
+echo -e "  ${CYAN}Results Dir     :${NC} ${YELLOW}${results}${NC}"
+echo -e "  ${CYAN}Metadata File   :${NC} ${YELLOW}${metadata}${NC}"
+echo -e "  ${CYAN}Matrix Path     :${NC} ${YELLOW}${matrix_path}${NC}"
+echo -e "  ${CYAN}PCA Type        :${NC} ${YELLOW}${pca_type}${NC}"
+echo -e "  ${CYAN}Log Transform   :${NC} ${YELLOW}${log_transform}${NC}"
+echo -e "  ${CYAN}Remove Zero Var :${NC} ${YELLOW}${remove_zero_var}${NC}"
+echo -e "  ${CYAN}Metadata Sep    :${NC} ${YELLOW}${metadata_sep}${NC}"
+echo -e "  ${CYAN}Matrix Sep      :${NC} ${YELLOW}${matrix_sep}${NC}"
+echo -e "  ${CYAN}Threads         :${NC} ${YELLOW}${threads}${NC}"
+echo -e "  ${CYAN}Quiet Mode      :${NC} ${YELLOW}${quiet}${NC}"
+log_sep "=" "$CYAN"
+log_info "Initializing Pipeline Wrapper"
+
+
+python3 pca.py "$workdir" "$results" "$matrix_path" "$matrix_sep" "$metadata" "$metadata_sep" "$pca_type" "$log_transform" "$remove_zero_var" "$threads" "$quiet"
 cmd_exit_code=$?
 
 if [ $cmd_exit_code -ne 0 ]; then

@@ -352,10 +352,10 @@ main <- function() {
     base_name <- tools::file_path_sans_ext(orig_filename)
 
     if (grepl("_", base_name)) {
-      new_base <- sub("_[^_]+$", "_annotated", base_name)
+      new_base <- sub("_[^_]+$", "_annotation", base_name)
       out_filename <- paste0(new_base, ".", ext)
     } else {
-      out_filename <- paste0(base_name, "_annotated.", ext)
+      out_filename <- paste0(base_name, "_annotation.", ext)
     }
 
     metadata_out_path <- file.path(results, out_filename)
