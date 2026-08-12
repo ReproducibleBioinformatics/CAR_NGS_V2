@@ -75,7 +75,7 @@ if (!mode %in% c("deseq", "deseqnormalized")) {
 
 # ------- Print Pipeline Execution Context ------- #
 log_sep("=", CYAN)
-log_info("Pipeline Execution Context:", quiet)
+log_info("Pipeline Execution Context:")
 cat(sprintf("  %sScript Name      :%s %s%s%s\n", CYAN, NC, GREEN, SCRIPT_NAME, NC))
 cat(sprintf("  %sInput File       :%s %s%s%s\n", CYAN, NC, YELLOW, input_file, NC))
 cat(sprintf("  %sExpr Sep         :%s '%s%s%s'\n", CYAN, NC, YELLOW, raw_expr_sep, NC))
@@ -86,10 +86,10 @@ cat(sprintf("  %sMode             :%s %s%s%s\n", CYAN, NC, YELLOW, mode, NC))
 cat(sprintf("  %sThreads          :%s %s%s%s\n", CYAN, NC, YELLOW, threads, NC))
 cat(sprintf("  %sQuiet Mode       :%s %s%s%s\n", CYAN, NC, YELLOW, quiet, NC))
 log_sep("=", CYAN)
-log_info("Initializing DESeq2 Pipeline Wrapper", quiet)
+log_info("Initializing DESeq2 Pipeline Wrapper")
 
 # ------- Validate Threads Parameter ------- #
-log_step("Validating parameters and environment...", quiet)
+log_step("Validating parameters and environment...")
 if (!grepl("^[0-9]+$", threads) || as.integer(threads) <= 0) {
   log_error(sprintf("The threads parameter must be a positive integer (provided: '%s')", threads))
   quit(status = 1)
@@ -99,14 +99,14 @@ threads_num <- as.integer(threads)
 # ------- Optimize Threads Allocation ------- #
 max_cores <- parallel::detectCores()
 if (!is.na(max_cores) && threads_num > max_cores) {
-  log_warn(sprintf("Requested threads (%d) exceed available CPU cores (%d). Capping allocation to %d.", threads_num, max_cores, max_cores), quiet)
+  log_warn(sprintf("Requested threads (%d) exceed available CPU cores (%d). Capping allocation to %d.", threads_num, max_cores, max_cores))
   threads_num <- max_cores
 }
 Sys.setenv(OMP_NUM_THREADS = as.character(threads_num))
 
 # ------- Check Results Directory ------- #
 if (!dir.exists(results)) {
-  log_warn(sprintf("Results directory '%s' does not exist. Creating it now.", results), quiet)
+  log_warn(sprintf("Results directory '%s' does not exist. Creating it now.", results))
   dir.create(results, recursive = TRUE, showWarnings = FALSE)
 }
 
@@ -144,7 +144,7 @@ if (is.null(meta_sep)) {
 }
 
 # ------- Load Required Libraries ------- #
-log_step("Loading required packages...", quiet)
+log_step("Loading required packages...")
 tryCatch({
   suppressPackageStartupMessages({
     library(DESeq2)
@@ -160,7 +160,7 @@ tryCatch({
 register(MulticoreParam(workers = threads_num))
 
 # ------- Read Input Expression Matrix ------- #
-log_step("Reading expression matrix...", quiet)
+log_step("Reading expression matrix...")
 mat <- tryCatch({
   read.table(input_file, row.names = 1, header = TRUE, sep = expr_sep, check.names = FALSE, stringsAsFactors = FALSE)
 }, error = function(e) {
@@ -169,7 +169,7 @@ mat <- tryCatch({
 })
 
 # ------- Read Metadata File ------- #
-log_step("Reading metadata file...", quiet)
+log_step("Reading metadata file...")
 metadata_df <- tryCatch({
   read.table(metadata, header = TRUE, sep = meta_sep, check.names = FALSE, stringsAsFactors = FALSE)
 }, error = function(e) {
@@ -193,7 +193,7 @@ if (is.na(cov_col_idx)) {
 actual_cov_col <- colnames(metadata_df)[cov_col_idx]
 
 # ------- Align Matrix and Metadata Samples ------- #
-log_step("Aligning expression matrix and metadata...", quiet)
+log_step("Aligning expression matrix and metadata...")
 common_samples <- intersect(colnames(mat), metadata_df[[sample_col_name]])
 
 if (length(common_samples) < 3) {
@@ -202,7 +202,7 @@ if (length(common_samples) < 3) {
 }
 
 if (length(common_samples) < ncol(mat)) {
-  log_warn(sprintf("Found metadata for %d out of %d samples in matrix. Retaining common samples.", length(common_samples), ncol(mat)), quiet)
+  log_warn(sprintf("Found metadata for %d out of %d samples in matrix. Retaining common samples.", length(common_samples), ncol(mat)))
 }
 
 # Subset and align
@@ -219,7 +219,7 @@ file_base_name <- sub("\\.[^.]*$", "", basename(input_file))
 
 # ------- Mode 1: Standard DESeq2 PCA ------- #
 if (mode == "deseq") {
-  log_step("Running DESeq2 VST Transformation (Mode: deseq)...", quiet)
+  log_step("Running DESeq2 VST Transformation (Mode: deseq)...")
   
   tryCatch({
     dds <- DESeqDataSetFromMatrix(countData = as.matrix(mat), colData = coldata, design = ~ group)
@@ -246,7 +246,7 @@ if (mode == "deseq") {
     # Save PNG Output
     output_png <- file.path(results, paste0(file_base_name, "_deseq_pca.png"))
     ggsave(output_png, plot = p, width = 8, height = 6)
-    log_success(sprintf("DESeq2 PCA plot saved to: '%s'", output_png), quiet)
+    log_success(sprintf("DESeq2 PCA plot saved to: '%s'", output_png))
   }, error = function(e) {
     log_error(sprintf("DESeq2 execution failed: %s", e$message))
     quit(status = 2)
@@ -254,7 +254,7 @@ if (mode == "deseq") {
 
 # ------- Mode 2: Normalized DESeq2 PCA ------- #
 } else if (mode == "deseqnormalized") {
-  log_step("Running DESeq2 VST Transformation with poscounts (Mode: deseqnormalized)...", quiet)
+  log_step("Running DESeq2 VST Transformation with poscounts (Mode: deseqnormalized)...")
   
   tryCatch({
     dds <- DESeqDataSetFromMatrix(countData = as.matrix(mat), colData = coldata, design = ~ group)
@@ -279,7 +279,7 @@ if (mode == "deseq") {
     # Save PDF Output
     output_pdf <- file.path(results, paste0(file_base_name, "_deseqNorm_pca.pdf"))
     ggsave(output_pdf, plot = p, width = 8, height = 6)
-    log_success(sprintf("Design-Aware Normalized PCA plot saved to: '%s'", output_pdf), quiet)
+    log_success(sprintf("Design-Aware Normalized PCA plot saved to: '%s'", output_pdf))
   }, error = function(e) {
     log_error(sprintf("DESeq2 Normalized execution failed: %s", e$message))
     quit(status = 2)
@@ -287,4 +287,4 @@ if (mode == "deseq") {
 }
 
 log_sep("=", CYAN)
-log_success("Pipeline Terminated Successfully.", quiet)
+log_success("Pipeline Terminated Successfully.")
