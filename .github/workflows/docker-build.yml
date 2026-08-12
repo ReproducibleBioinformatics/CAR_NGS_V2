@@ -37,6 +37,8 @@ jobs:
               - 'BulkRNASeq/rsemstar/**'
             annotation:
               - 'BulkRNASeq/annotation/**'
+            pca:
+              - 'BulkRNASeq/pca/**'
 
   build-and-push:
     needs: detect-changes
@@ -63,6 +65,9 @@ jobs:
           - name: docker4seq-annotation-v2
             path: BulkRNASeq/annotation
             filter: annotation
+          - name: docker4seq-pca-v2
+            path: BulkRNASeq/pca
+            filter: pca
 
 
 
