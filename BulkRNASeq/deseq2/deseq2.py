@@ -115,9 +115,9 @@ def main():
     docker_vals['quiet'] = args['quiet']
 
     # --- Assemble docker command ---
-    cmd = ' image= ghcr.io/reproduciblebioinformatics/docker4seq-deseq2-v2:latest bash /home/start.sh <outdir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <log2fc> <fdr> <ref_covar> <target_covar> <threads> <quiet>'
+    cmd = ' ghcr.io/reproduciblebioinformatics/docker4seq-deseq2-v2:latest bash /home/start.sh <outdir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <log2fc> <fdr> <ref_covar> <target_covar> <threads> <quiet>'
     mount_str = ' '.join(mounts)
-    cmd = ' '.join(['docker run --rm', mount_str, ' image= ghcr.io/reproduciblebioinformatics/docker4seq-deseq2-v2:latest bash /home/start.sh <outdir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <log2fc> <fdr> <ref_covar> <target_covar> <threads> <quiet>'])
+    cmd = ' '.join(['docker run --rm', mount_str, ' ghcr.io/reproduciblebioinformatics/docker4seq-deseq2-v2:latest bash /home/start.sh <outdir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <log2fc> <fdr> <ref_covar> <target_covar> <threads> <quiet>'])
     PARAM_NAMES = ['matrix_sep', 'metadata_sep', 'log2fc', 'fdr', 'ref_covar', 'target_covar', 'threads', 'quiet']
     def replace_placeholder(match):
         key = match.group(1)

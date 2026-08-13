@@ -5,7 +5,7 @@ name=deseq2
 [run]
 command=docker run --rm
 script= bash /home/start.sh
-image= image= ghcr.io/reproduciblebioinformatics/docker4seq-deseq2-v2:latest
+image= ghcr.io/reproduciblebioinformatics/docker4seq-deseq2-v2:latest
 usage= <outDir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <log2fc> <fdr> <ref_covar> <target_covar> <threads> <quiet>
 
 [directory]
