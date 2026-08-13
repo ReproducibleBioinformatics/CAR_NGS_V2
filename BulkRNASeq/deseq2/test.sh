@@ -30,7 +30,7 @@ log_sep() { [ "$QUIET" == "true" ] && return; echo -e "${2:-$CYAN}$(printf '%0.s
 QUIET="$quiet"
 
 # ==============================================================================
-# EXIT CODE SCHEME
+# EXIT CODE SCHEME 
 # exit 1 -> failure of python3 deseq2.py execution
 # ==============================================================================
 
