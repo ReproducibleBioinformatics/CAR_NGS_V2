@@ -41,6 +41,8 @@ jobs:
               - 'BulkRNASeq/pca/**'
             deseq2:
               - 'BulkRNASeq/deseq2/**'
+            filter:
+              - 'BulkRNASeq/filter/**'
 
   build-and-push:
     needs: detect-changes
@@ -73,6 +75,9 @@ jobs:
           - name: docker4seq-deseq2-v2
             path: BulkRNASeq/deseq2
             filter: deseq2
+          - name: docker4seq-filter-v2
+            path: BulkRNASeq/filter
+            filter: filter
 
 
 

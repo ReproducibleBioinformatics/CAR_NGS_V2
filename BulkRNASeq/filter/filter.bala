@@ -1,0 +1,53 @@
+[research]
+description=Description: A utility script that filters DESeq2 results (DE_FULL.txt) based on user-defined Log2 Fold-Change (LFC) and False Discovery Rate (FDR/padj) thresholds. It exports the statistically significant differential expression metrics (DE_Filtered.txt) and subsets both the raw (DE_counts.txt) and log2-normalized (DE_normalizedCounts.txt) expression matrices to retain only the features that passed the selection criteria
+name=filter
+
+[run]
+command=docker run --rm
+script= bash /home/start.sh
+image= ghcr.io/reproduciblebioinformatics/docker4seq-filter-v2:latest
+usage= <de_full> <raw_counts> <norm_counts> <outDir> <log2fc> <padj> <threads> <quiet>
+
+[directory]
+name=workDir
+description=indicating the working folder
+flag=io
+mount=/workDir
+
+[directory]
+name=outDir
+description=indicating the folder where results will be written
+mount=/results
+flag=out
+
+[file]
+name=DE_full
+flag=cp
+description = The complete, unfiltered output from DESeq2 containing all tested genes with their respective statistical metrics, including base mean, log2 fold-changes (LFC), p-values, and adjusted p-values (FDR/padj)
+
+[file]
+name=raw_counts
+flag=cp
+description = A filtered subset of the primary raw expression matrix, containing only the non-normalized integer read counts of genes that passed the user-defined statistical thresholds across all samples.
+
+[file]
+name=norm_counts
+flag=cp
+description = A filtered matrix containing library-size corrected and $\log_2$-transformed expression levels for statistically significant genes, ideal for downstream clustering, heatmaps, and PCA.
+
+[parameter]
+name = log2fc
+description = Log2 Fold Change absolute threshold for filtering differentially expressed genes (e.g., 1.0 for a 2-fold change)
+
+[parameter]
+name = padj
+description = The actual statistic calculated for each gene, which has been corrected for multiple testing (typically via the Benjamini-Hochberg procedure) to ensure that filtering by this value maintains the global FDR at the desired level.
+
+[parameter]
+name = threads
+description = a number indicating the number of cores to be used from the application
+
+[parameter]
+name = quiet
+values = false,true
+description = Set to "true" to suppress tool processing messages, set to "false" to keep verbose logging enabled.

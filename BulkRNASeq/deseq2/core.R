@@ -24,39 +24,16 @@ get_script_name <- function() {
   return("core.R")
 }
 SCRIPT_NAME <- get_script_name()
-
-# ------- ANSI Color Definitions & Logging Helpers (mirrors sample.sh) ------- #
-NC <- "\033[0m"; CYAN <- "\033[0;36m"; YELLOW <- "\033[1;33m"
-ORANGE <- "\033[0;33m"; GREEN <- "\033[0;32m"; RED <- "\033[0;31m"
+CYAN <- "\033[0;36m"; YELLOW <- "\033[1;33m"; ORANGE <- "\033[0;33m"; GREEN <- "\033[0;32m"; RED <- "\033[0;31m"; NC <- "\033[0m"
+log_info <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s INFO]    %s%s\n", CYAN, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_step <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s PROCESS] %s%s\n", YELLOW, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_warn <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s WARNING] %s%s\n", ORANGE, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_success <- function(msg) { if (!exists("QUIET") || !isTRUE(QUIET)) cat(sprintf("%s[%s] [%s SUCCESS] %s%s\n", GREEN, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC)) }
+log_error <- function(msg) { cat(sprintf("%s[%s] [%s ERROR]   %s%s\n", RED, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), SCRIPT_NAME, msg, NC), file = stderr()) }
+log_sep <- function(char = "=", color = CYAN) { cat(sprintf("%s%s%s\n", color, paste(rep(char, 100), collapse = ""), NC))}
 
 QUIET <- FALSE
-
 log_timestamp <- function() format(Sys.time(), "%Y-%m-%d %H:%M:%S")
-
-log_info <- function(msg) {
-  if (isTRUE(QUIET)) return(invisible(NULL))
-  cat(sprintf("%s[%s] [%s INFO]    %s%s\n", CYAN, log_timestamp(), SCRIPT_NAME, msg, NC))
-}
-log_step <- function(msg) {
-  if (isTRUE(QUIET)) return(invisible(NULL))
-  cat(sprintf("%s[%s] [%s PROCESS] %s%s\n", YELLOW, log_timestamp(), SCRIPT_NAME, msg, NC))
-}
-log_warn <- function(msg) {
-  if (isTRUE(QUIET)) return(invisible(NULL))
-  cat(sprintf("%s[%s] [%s WARNING] %s%s\n", ORANGE, log_timestamp(), SCRIPT_NAME, msg, NC))
-}
-log_success <- function(msg) {
-  if (isTRUE(QUIET)) return(invisible(NULL))
-  cat(sprintf("%s[%s] [%s SUCCESS] %s%s\n", GREEN, log_timestamp(), SCRIPT_NAME, msg, NC))
-}
-log_error <- function(msg) {
-  # Errors are always printed, regardless of QUIET (mirrors sample.sh).
-  cat(sprintf("%s[%s] [%s ERROR]   %s%s\n", RED, log_timestamp(), SCRIPT_NAME, msg, NC))
-}
-log_sep <- function(char = "=", color = CYAN) {
-  if (isTRUE(QUIET)) return(invisible(NULL))
-  cat(sprintf("%s%s%s\n", color, strrep(char, 100), NC))
-}
 
 # ------- Fatal Error Helper (log + non-zero exit, mirrors "exit 1") ------- #
 die <- function(msg, status = 1) {
