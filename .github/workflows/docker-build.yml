@@ -39,6 +39,8 @@ jobs:
               - 'BulkRNASeq/annotation/**'
             pca:
               - 'BulkRNASeq/pca/**'
+            pca:
+              - 'BulkRNASeq/deseq2/**'
 
   build-and-push:
     needs: detect-changes
@@ -68,6 +70,9 @@ jobs:
           - name: docker4seq-pca-v2
             path: BulkRNASeq/pca
             filter: pca
+          - name: docker4seq-deseq2-v2
+            path: BulkRNASeq/deseq2
+            filter: deseq2
 
 
 
