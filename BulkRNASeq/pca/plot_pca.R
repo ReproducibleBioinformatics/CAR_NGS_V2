@@ -95,7 +95,7 @@ cat(sprintf("  %sRemove Zero Var  :%s %s%s%s\n", CYAN, NC, YELLOW, remove_zero_v
 cat(sprintf("  %sThreads          :%s %s%s%s\n", CYAN, NC, YELLOW, threads, NC))
 cat(sprintf("  %sQuiet Mode       :%s %s%s%s\n", CYAN, NC, YELLOW, quiet, NC))
 log_sep("=", CYAN)
-log_info("Initializing PCA Analysis Pipeline Wrapper)
+log_info("Initializing PCA Analysis Pipeline Wrapper")
 
 # ------- Validate Threads Parameter ------- #
 log_step("Validating parameters and environment...")
