@@ -124,7 +124,7 @@ docker_vals["quiet"]="${quiet}"
 mount_str="${mounts[*]}"
 PARAM_NAMES=("matrix_sep" "metadata_sep" "log2fc" "fdr" "ref_covar" "target_covar" "threads" "quiet")
 special_chars_re='[;&|()<>$`"'"'"'[:space:]]'
-cmd="docker run --rm ${mount_str} image= ghcr.io/reproduciblebioinformatics/docker4seq-deseq2-v2:latest bash /home/start.sh <outdir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <log2fc> <fdr> <ref_covar> <target_covar> <threads> <quiet>"
+cmd="docker run --rm ${mount_str} ghcr.io/reproduciblebioinformatics/docker4seq-deseq2-v2:latest bash /home/start.sh <outdir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <log2fc> <fdr> <ref_covar> <target_covar> <threads> <quiet>"
 for key in "${!docker_vals[@]}"; do
     val="${docker_vals[${key}]}"
     is_param=0

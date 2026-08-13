@@ -204,9 +204,9 @@ log_step "Processing matrix [${file_name}] -> Target Output: [${results}]"
 Rscript "$core_script_path" \
     "$results" \
     "$matrix_path" \
-    "$matrix_sep" \
+    "${3}" \
     "$metadata" \
-    "$metadata_sep" \
+    "${5}" \
     "$log2fc" \
     "$fdr" \
     "$ref_covar" \
