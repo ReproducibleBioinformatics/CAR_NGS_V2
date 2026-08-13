@@ -39,7 +39,7 @@ jobs:
               - 'BulkRNASeq/annotation/**'
             pca:
               - 'BulkRNASeq/pca/**'
-            pca:
+            deseq2:
               - 'BulkRNASeq/deseq2/**'
 
   build-and-push:
