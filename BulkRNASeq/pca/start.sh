@@ -199,7 +199,7 @@ log_step "Processing file [${file_name}] -> Saving output directly to [${results
 if [ "$pca_type" == "standard" ]; then
     log_step "Running Standard PCA via /usr/local/bin/plot_pca.R..."
 
-    Rscript /usr/local/bin/plot_pca.R "$matrix_path" "$matrix_sep" "$metadata" "$metadata_sep" "$results" "$log_transform" "$remove_zero_var" "$quiet"
+    Rscript /usr/local/bin/plot_pca.R "$matrix_path" "$matrix_sep" "$metadata" "$metadata_sep" "$results" "$log_transform" "$remove_zero_var" "$threads" "$quiet"
     R_STATUS=$?
 else
     log_step "Running DESeq2 PCA (mode: $pca_type) via /usr/local/bin/run_deseq2.R..."
