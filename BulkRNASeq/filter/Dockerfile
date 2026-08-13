@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY filter.R /usr/local/bin/filter.R
-RUN chmod +x /usr/local/bin/filter.R
+COPY filter_de_results.R /usr/local/bin/filter_de_results.R
+RUN chmod +x /usr/local/bin/filter_de_results.R
 
 COPY start.sh /home/start.sh
 RUN chmod +x /home/start.sh
