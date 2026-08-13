@@ -9,7 +9,7 @@ SCRIPT_NAME="test-pca"
 # ------- Hardcoded Constants ------- #
 workdir="workdir"
 results="results/"
-pca_type="standard"
+pca_type="Standard"
 log_transform="false"
 remove_zero_var="true"
 metadata_sep=","

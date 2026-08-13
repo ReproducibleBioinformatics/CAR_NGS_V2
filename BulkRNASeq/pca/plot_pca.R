@@ -66,7 +66,7 @@ quiet           <- tolower(trimws(args[9]))
 
 # ------- Validate Quiet Parameter (upfront, required for logging) ------- #
 if (!quiet %in% c("true", "false")) {
-  log_error(sprintf("The quiet parameter must be 'true' or 'false' (provided: '%s')", quiet))
+  log_error(sprintf("The quiet parameter must be 'true' or 'false' (provided: '%s')"))
   quit(status = 1)
 }
 
@@ -82,8 +82,8 @@ if (!remove_zero_var %in% c("true", "false")) {
 }
 
 # ------- Print Pipeline Execution Context ------- #
-log_sep("=", CYAN, quiet)
-log_info("Pipeline Execution Context:", quiet)
+log_sep("=", CYAN)
+log_info("Pipeline Execution Context:")
 cat(sprintf("  %sScript Name      :%s %s%s%s\n", CYAN, NC, GREEN, SCRIPT_NAME, NC))
 cat(sprintf("  %sInput File       :%s %s%s%s\n", CYAN, NC, YELLOW, input_file, NC))
 cat(sprintf("  %sExpr Sep         :%s '%s%s%s'\n", CYAN, NC, YELLOW, raw_expr_sep, NC))
@@ -94,11 +94,11 @@ cat(sprintf("  %sLog Transform    :%s %s%s%s\n", CYAN, NC, YELLOW, log_transform
 cat(sprintf("  %sRemove Zero Var  :%s %s%s%s\n", CYAN, NC, YELLOW, remove_zero_var, NC))
 cat(sprintf("  %sThreads          :%s %s%s%s\n", CYAN, NC, YELLOW, threads, NC))
 cat(sprintf("  %sQuiet Mode       :%s %s%s%s\n", CYAN, NC, YELLOW, quiet, NC))
-log_sep("=", CYAN, quiet)
-log_info("Initializing PCA Analysis Pipeline Wrapper", quiet)
+log_sep("=", CYAN)
+log_info("Initializing PCA Analysis Pipeline Wrapper)
 
 # ------- Validate Threads Parameter ------- #
-log_step("Validating parameters and environment...", quiet)
+log_step("Validating parameters and environment...")
 if (!grepl("^[0-9]+$", threads) || as.integer(threads) <= 0) {
   log_error(sprintf("The threads parameter must be a positive integer (provided: '%s')", threads))
   quit(status = 1)
@@ -108,7 +108,7 @@ threads_num <- as.integer(threads)
 # ------- Optimize Threads Allocation ------- #
 max_cores <- parallel::detectCores()
 if (!is.na(max_cores) && threads_num > max_cores) {
-  log_warn(sprintf("Requested threads (%d) exceed available CPU cores (%d). Capping allocation to %d.", threads_num, max_cores, max_cores), quiet)
+  log_warn(sprintf("Requested threads (%d) exceed available CPU cores (%d). Capping allocation to %d.", threads_num, max_cores, max_cores))
   threads_num <- max_cores
 }
 Sys.setenv(OMP_NUM_THREADS = as.character(threads_num))
@@ -118,7 +118,7 @@ if (requireNamespace("RhpcBLASctl", quietly = TRUE)) {
 
 # ------- Check Results Directory ------- #
 if (!dir.exists(results)) {
-  log_warn(sprintf("Results directory '%s' does not exist. Creating it now.", results), quiet)
+  log_warn(sprintf("Results directory '%s' does not exist. Creating it now.", results))
   dir.create(results, recursive = TRUE, showWarnings = FALSE)
 }
 
@@ -156,7 +156,7 @@ if (is.null(meta_sep)) {
 }
 
 # ------- Read Input Expression Matrix ------- #
-log_step("Reading expression matrix...", quiet)
+log_step("Reading expression matrix...")
 tmp <- tryCatch({
   read.table(input_file, sep = expr_sep, stringsAsFactors = FALSE, header = TRUE, check.names = FALSE, row.names = 1)
 }, error = function(e) {
@@ -165,7 +165,7 @@ tmp <- tryCatch({
 })
 
 # ------- Read Metadata File ------- #
-log_step("Reading metadata file...", quiet)
+log_step("Reading metadata file...")
 metadata_df <- tryCatch({
   read.table(metadata, sep = meta_sep, stringsAsFactors = FALSE, header = TRUE, check.names = FALSE)
 }, error = function(e) {
@@ -184,7 +184,7 @@ if (!"Covariate" %in% colnames(metadata_df)) {
 }
 
 # ------- Align Expression Matrix and Metadata ------- #
-log_step("Aligning expression matrix and metadata...", quiet)
+log_step("Aligning expression matrix and metadata...")
 common_samples <- intersect(colnames(tmp), metadata_df$SampleName)
 
 if (length(common_samples) == 0) {
@@ -193,7 +193,7 @@ if (length(common_samples) == 0) {
 }
 
 if (length(common_samples) < ncol(tmp)) {
-  log_warn(sprintf("Found metadata for %d out of %d samples in the matrix.", length(common_samples), ncol(tmp)), quiet)
+  log_warn(sprintf("Found metadata for %d out of %d samples in the matrix.", length(common_samples), ncol(tmp)))
 }
 
 tmp <- tmp[, common_samples, drop = FALSE]
@@ -215,10 +215,10 @@ data <- tmp
 
 # ------- Apply log2 transformation ------- #
 if (log_transform == "true") {
-  log_info("Applying log2(x + 1) transformation.", quiet)
+  log_info("Applying log2(x + 1) transformation.")
   data <- log2(data + 1)
 } else {
-  log_info("Skipping log2 transformation.", quiet)
+  log_info("Skipping log2 transformation.")
 }
 
 # ------- Remove zero variance features ------- #
@@ -226,15 +226,15 @@ if (remove_zero_var == "true") {
   gene_variances <- apply(data, 1, var)
   zero_var_genes <- sum(gene_variances == 0, na.rm = TRUE)
   if (zero_var_genes > 0) {
-    log_warn(sprintf("Removing %d genes with zero variance across matched samples.", zero_var_genes), quiet)
+    log_warn(sprintf("Removing %d genes with zero variance across matched samples.", zero_var_genes))
     data <- data[gene_variances > 0, ]
   }
 } else {
-  log_info("Skipping removal of zero variance genes.", quiet)
+  log_info("Skipping removal of zero variance genes.")
 }
 
 # ------- Perform PCA ------- #
-log_step("Computing Principal Component Analysis (PCA)...", quiet)
+log_step("Computing Principal Component Analysis (PCA)...")
 pca_result <- tryCatch({
   prcomp(t(data))
 }, error = function(e) {
@@ -255,7 +255,7 @@ input_file_name <- sub("\\.[^.]*$", "", basename(input_file))
 pdf_path <- file.path(results, paste0(input_file_name, "_pca.pdf"))
 
 # ------- Generate and Save Plot ------- #
-log_step("Generating PCA plot...", quiet)
+log_step("Generating PCA plot...")
 tryCatch({
   pdf(pdf_path, width = 8, height = 7)
   par(mar = c(5, 4, 4, 8), xpd = TRUE)
@@ -296,6 +296,6 @@ tryCatch({
   quit(status = 2)
 })
 
-log_sep("=", CYAN, quiet)
-log_success(sprintf("PCA processing completed successfully. Plot saved to: '%s'", pdf_path), quiet)
-log_success("Pipeline Terminated Successfully.", quiet)
+log_sep("=", CYAN)
+log_success(sprintf("PCA processing completed successfully. Plot saved to: '%s'", pdf_path))
+log_success("Pipeline Terminated Successfully.")
