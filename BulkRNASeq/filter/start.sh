@@ -141,20 +141,10 @@ log_sep "-" "$YELLOW"
 
 # ------- Core Processing Step: Run Filtering Script (filter_de_results.R) ------- #
 log_step "Running Filtering Script (filter_de_results.R)..."
-
-Rscript /usr/local/bin/filter_de_results.R \
-    "$de_full" \
-    "$raw_counts" \
-    "$norm_counts" \
-    "$results" \    
-    "$log2fc" \
-    "$padj" \
-    "$threads" \
-    "$quiet"
-
+Rscript /usr/local/bin/filter_de_results.R "$de_full" "$raw_counts" "$norm_counts" "$results" "$log2fc" "$padj" "$threads" "$quiet"
 r_status=$?
-
 log_sep
+
 if [ $r_status -eq 0 ]; then
     log_success "filter_de_results.R executed successfully (Threads used: $threads)."
 else
