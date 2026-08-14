@@ -9,9 +9,6 @@ SCRIPT_NAME="test-filter"
 # ------- Hardcoded Constants ------- #
 workdir="workdir"
 results="results/"
-de_full="../testdata/DESeq2/DEfull_batch.txt"
-raw_counts="../testdata/DESeq2/experiment_counts.txt"
-norm_counts="../testdata/DESeq2/log2normalized_counts.txt"
 log2fc="1.0"
 padj="0.05"
 threads=8
@@ -27,6 +24,36 @@ log_error() { echo -e "${RED}[$(date '+%Y-%m-%d %H:%M:%S')] [${SCRIPT_NAME} ERRO
 log_sep() { [ "$QUIET" == "true" ] && return; echo -e "${2:-$CYAN}$(printf '%0.s'${1:-=} {1..100})${NC}"; }
 
 QUIET="$quiet"
+
+# ------- Function to Find Highest Output Directory ------- #
+get_latest_output_dir() {
+    local base_dir="${1}"
+    local max_num=-1
+    local latest_dir=""
+
+    if [ ! -d "$base_dir" ]; then
+        echo ""
+        return
+    fi
+
+    for dir in "${base_dir}"/output*; do
+        if [ -d "$dir" ]; then
+            folder_name=$(basename "$dir")
+            num="${folder_name#output}"
+            if [[ "$num" =~ ^[0-9]+$ ]] && [ "$num" -gt "$max_num" ]; then
+                max_num=$num
+                latest_dir="$dir"
+            fi
+        fi
+    done
+
+    echo "$latest_dir"
+}
+
+input_dir=$(get_latest_output_dir "../deseq2/results")
+de_full="${input_dir}/DE_FULL.txt"
+raw_counts="${input_dir}/experiment_counts_DE.txt"
+norm_counts="${input_dir}/experiment_counts_normalized_DE.txt"
 
 # ------- Print Pipeline Execution Context ------- #
 log_sep "=" "$CYAN"
@@ -44,16 +71,13 @@ echo -e "  ${CYAN}Quiet Mode      :${NC} ${YELLOW}${quiet}${NC}"
 log_sep "=" "$CYAN"
 log_info "Initializing Filter Pipeline Wrapper"
 
-# ==============================================================================
-# EXIT CODE SCHEME
-# exit 1 -> failure of python3 filter.py execution
-# ==============================================================================
+
 
 # ------- Core Processing Step: Filter Execution ------- #
 log_step "Executing Filter pipeline via Python wrapper..."
 log_sep
 
-python3 filter.py "$workdir" "$de_full" "$raw_counts" "$norm_counts" "$results" "$log2fc" "$padj" "$threads" "$quiet"
+python3 filter.py "$workdir" "$results" "$de_full" "$raw_counts" "$norm_counts" "$log2fc" "$padj" "$threads" "$quiet"
 cmd_exit_code=$?
 
 if [ $cmd_exit_code -ne 0 ]; then

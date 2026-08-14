@@ -146,9 +146,9 @@ Rscript /usr/local/bin/filter_de_results.R \
     "$de_full" \
     "$raw_counts" \
     "$norm_counts" \
+    "$results" \    
     "$log2fc" \
     "$padj" \
-    "$results" \
     "$threads" \
     "$quiet"
 
