@@ -139,7 +139,7 @@ log_sep "-" "$YELLOW"
 # exit 2 -> failure of filter_de_results.R (Rscript, first and only external tool invoked below)
 # ==============================================================================
 
-# ------- Core Processing Step 1: Run Filtering Script (filter_de_results.R) ------- #
+# ------- Core Processing Step: Run Filtering Script (filter_de_results.R) ------- #
 log_step "Running Filtering Script (filter_de_results.R)..."
 
 Rscript /usr/local/bin/filter_de_results.R \
