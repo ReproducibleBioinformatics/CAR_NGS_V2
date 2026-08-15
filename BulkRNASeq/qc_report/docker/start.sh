@@ -124,7 +124,7 @@ done < <(tail -n +2 "$metadata" | tr -d '\r')
 rm -rf "$tmp_results"
 if [ -z "$(find "$results" -maxdepth 1 -name "*_fastqc.zip" 2>/dev/null)" ]; then log_error "No FastQC outputs found in output directory. Skipping MultiQC."; exit 2; fi
 # ------- Running MultiQC ------- #
-log_step "Running MultiQC..."
+log_info "Running MultiQC..."
 multiqc_quiet_flag=""
 if [ "$QUIET" == "true" ]; then multiqc_quiet_flag="--quiet"; fi
 if multiqc "$results" -o "$results" --cl-config "max_subprocs: $threads" $multiqc_quiet_flag; then log_success "MultiQC completed successfully."; else log_error "MultiQC failed."; exit 3; fi

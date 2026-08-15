@@ -110,8 +110,8 @@ jobs:
         if: contains(fromJSON(needs.detect-changes.outputs.changes), matrix.filter)
         uses: docker/build-push-action@v5
         with:
-          context: ./${{ matrix.path }}
-          file: ./${{ matrix.path }}/Dockerfile
+          context: ./${{ matrix.docker_path }}
+          file: ./${{ matrix.docker_path }}/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ env.OWNER_LOWER }}/${{ matrix.name }}:latest
