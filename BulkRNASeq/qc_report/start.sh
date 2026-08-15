@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 DOCKER_NAME="docker4seq-qc_report-v2"
 
 NC='\033[0m'; CYAN='\033[0;36m'; YELLOW='\033[1;33m'; ORANGE='\033[0;33m'; GREEN='\033[0;32m'; RED='\033[0;31m'
