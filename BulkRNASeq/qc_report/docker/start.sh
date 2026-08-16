@@ -52,16 +52,18 @@ quiet="${6}"
 # ------- Validate Quiet Parameter ------- #
 if [ "$quiet" != "true" ] && [ "$quiet" != "false" ]; then log_warn "Invalid quiet parameter '$quiet', defaulting to 'false'"; quiet="false"; fi; QUIET="$quiet"
 # ------- Print Pipeline Execution Context ------- #
-log_sep "=" "$CYAN"
-log_info "Pipeline Execution Context:"
-echo -e "  ${CYAN}Docker Container:${NC} ${GREEN}${DOCKER_NAME}${NC}"
-echo -e "  ${CYAN}Input Dir       :${NC} ${YELLOW}${input_dir}${NC}"
-echo -e "  ${CYAN}Results Dir     :${NC} ${YELLOW}${results}${NC}"
-echo -e "  ${CYAN}Metadata        :${NC} ${YELLOW}${metadata}${NC}"
-echo -e "  ${CYAN}Metadata Sep    :${NC} '${YELLOW}${metadata_sep}${NC}'"
-echo -e "  ${CYAN}Threads         :${NC} ${YELLOW}${threads}${NC}"
-echo -e "  ${CYAN}Quiet Mode      :${NC} ${YELLOW}${quiet}${NC}"
-log_sep "=" "$CYAN"
+if [ "$QUIET" == "false" ] then 
+    log_sep "=" "$CYAN"
+    log_info "Pipeline Execution Context:"
+    echo -e "  ${CYAN}Docker Container:${NC} ${GREEN}${DOCKER_NAME}${NC}"
+    echo -e "  ${CYAN}Input Dir       :${NC} ${YELLOW}${input_dir}${NC}"
+    echo -e "  ${CYAN}Results Dir     :${NC} ${YELLOW}${results}${NC}"
+    echo -e "  ${CYAN}Metadata        :${NC} ${YELLOW}${metadata}${NC}"
+    echo -e "  ${CYAN}Metadata Sep    :${NC} '${YELLOW}${metadata_sep}${NC}'"
+    echo -e "  ${CYAN}Threads         :${NC} ${YELLOW}${threads}${NC}"
+    echo -e "  ${CYAN}Quiet Mode      :${NC} ${YELLOW}${quiet}${NC}"
+    log_sep "=" "$CYAN"
+fi
 # ------- Validate an optimize Threads Parameter and allocation ------- #
 max_cores=$(nproc)
 if ! [[ "$threads" =~ ^[0-9]+$ ]] || [ "$threads" -le 0 ]; then log_warn "Invalid threads parameter '$threads' (must be a positive integer). Defaulting to 1."; threads=1; fi
