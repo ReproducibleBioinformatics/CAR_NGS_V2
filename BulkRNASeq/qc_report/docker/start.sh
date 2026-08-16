@@ -52,7 +52,7 @@ quiet="${6}"
 # ------- Validate Quiet Parameter ------- #
 if [ "$quiet" != "true" ] && [ "$quiet" != "false" ]; then log_warn "Invalid quiet parameter '$quiet', defaulting to 'false'"; quiet="false"; fi; QUIET="$quiet"
 # ------- Print Pipeline Execution Context ------- #
-if [ "$QUIET" == "false" ] then 
+if [ "$QUIET" == "false" ]; then 
     log_sep "=" "$CYAN"
     log_info "Pipeline Execution Context:"
     echo -e "  ${CYAN}Docker Container:${NC} ${GREEN}${DOCKER_NAME}${NC}"
