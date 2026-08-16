@@ -21,11 +21,27 @@ The pipeline is composed of the following steps, executed in order:
 
 Common parameters shared across steps:
 
-* **threads** – number of threads dedicated to the tool's execution.
+* **metadata** – Path to the metadata mapping file passed to the script. 
 * **separator** – cell separator used in the sample metadata file (`,` or `;` for CSV, `\t`/`tab` for TSV).
+* **threads** – number of threads dedicated to the tool's execution.
 * **quiet** – `true` to suppress the tool's processing messages, `false` to keep them enabled.
 
 ---
+
+### The Sample Metadata File
+
+The metadata file is the central manifest driving the entire pipeline: rather than passing individual FASTQ paths on the command line, each step reads this file to determine **which files to process** and **how they relate to one another**.
+
+Depending on the step, the metadata file is expected to carry (a subset of) the following columns:
+
+* **SampleName** – base file name of the FASTQ (or downstream) file to process.
+* **SampleFolder** – relative subfolder, under the step's input directory, where the file is located.
+* **SampleNumber** – numeric ID grouping paired-end mates or technical replicates belonging to the same sample.
+* **Batch** – optional batch identifier, used to model and correct batch effects (e.g. in `deseq2`).
+* **Covariate** – experimental condition/treatment label associated with the sample.
+* **VisName** – human-readable sample label used in plots and reports.
+
+As the pipeline progresses, steps that transform the input files (e.g. `skewer` trimming reads, `rsem` producing quantification results) write an **updated metadata file** in their `results` folder, with `SampleName`/`SampleFolder` pointing to the newly generated outputs. This keeps every downstream step decoupled from the previous step's internal file layout — each step only needs to be pointed at the correct metadata file to know exactly which files to consume and where to find them.
 
 ## Testing the Pipeline
 
@@ -53,7 +69,7 @@ Driven by the sample metadata CSV, reads the files in the `data_fastq` folder an
 
 Driven by the sample metadata CSV, reads the files in the `data_fastq` folder and runs skewer on each of them, producing output in the `results` folder.
 
-* **seqtype** – defines whether the files are paired (`pe`) or single (`se`). In the paired case, the two files sharing the same value in the `sampleNumber` column are passed to skewer together and produce a single output file; in the single case, each file is processed individually.
+* **seqtype** – defines whether the files are paired (`pe`) or single (`se`). In the paired case, the two files sharing the same value in the `SampleNumber` column are passed to skewer together and produce a single output file; in the single case, each file is processed individually.
 
 A new sample metadata file is created in `results`, with the `SampleName` and `SampleFolder` columns updated to reflect the trimmed output.
 
@@ -166,7 +182,7 @@ The generated CSV file contains the following schema:
 
 SampleName    | Base file name of the FASTQ file (Example: Control1_R1.fastq.gz)
 SampleFolder  | Relative subfolder path from INPUT_DIR (POSIX slashes) (Example: batch1/lane1)
-sampleNumber  | Numeric ID grouping matching sample pairs/replicates (Example: 1)
+SampleNumber  | Numeric ID grouping matching sample pairs/replicates (Example: 1)
 Batch         | Experimental batch identifier (Example: NA)
 Covariate     | Extracted experimental condition/treatment label (Example: Control)
 VisName       | Combined condition and replicate identifier for visualization (Example: Control_1)

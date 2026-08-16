@@ -13,34 +13,11 @@ Upon completion of all sample-level FastQC runs, the workflow automatically invo
 The tool is packaged and distributed via GitHub Container Registry (GHCR) under the Docker image:
 `ghcr.io/reproduciblebioinformatics/docker4seq-qc_report-v2:latest`
 
-### Command Syntax
-
-```bash
-docker run --rm \
-  -v /path/to/workdir:/workDir \
-  -v /path/to/fastq_dir:/data_fastq \
-  -v /path/to/results_dir:/results \
-  ghcr.io/reproduciblebioinformatics/docker4seq-qc_report-v2:latest \
-  bash /home/start.sh <inputDir> <outDir> <metadata> <metadata_sep> <threads> <quiet>
-```
-
----
-
-## Directory Mounts (Volume Mapping)
-
-| Mount Point | Flag | Description |
-| :--- | :--- | :--- |
-| `/workDir` | `io` | Working folder for execution and temporary file storage. |
-| `/data_fastq` | `in` | Input folder where raw FASTQ files are located. |
-| `/results` | `out` | Destination directory where FastQC outputs and the aggregate MultiQC report are written. |
-
----
-
 ## Inputs & Configuration Parameters
 
 ### File Inputs
 
-* **`metadata`** (`flag: cp`): Path to the sample metadata file (CSV or TSV format). It maps samples to FASTQ files via the `SampleName` column (and optional `SampleFolder` column).
+* **`metadata`**: Path to the sample metadata file (CSV or TSV format). It maps samples to FASTQ files via the `SampleName` column (and optional `SampleFolder` column).
 
 ### Command-line Parameters
 
@@ -66,29 +43,26 @@ python qc_report.py "./workdir" "./raw_data" "./results" "./raw_data/sampleMetaD
 ```
 
 ---
+### Manual Docker Launch Example
+
+When running the container manually (i.e., not via a Baryon-generated script), the sample metadata file is **not** automatically placed inside the working directory. You must therefore mount, as `/workDir`, the local folder that actually contains your metadata file, so that the script can locate it at `/workDir/<metadata>`.
+
+```bash
+docker run --rm \
+  -v /path/to/workdir:/workDir \
+  -v /path/to/fastq_dir:/data_fastq \
+  -v /path/to/results_dir:/results \
+  ghcr.io/reproduciblebioinformatics/docker4seq-qc_report-v2:latest \
+  bash /home/start.sh /data_fastq /results /workDir/<metadata> <metadata_sep> <threads> <quiet>
+```
+
+---
 
 ## Auxiliary Scripts
 
 ### `start.sh`
 
 The entrypoint script invoked by the container (`bash /home/start.sh ...`). It orchestrates the full pipeline: argument validation, metadata validation, per-sample FastQC execution, and the final MultiQC aggregation.
-
-**Usage**
-
-```bash
-bash start.sh <inputDir> <outDir> <metadata> <metadata_sep> <threads> <quiet>
-```
-
-**Arguments**
-
-| Argument | Required | Description |
-| :--- | :--- | :--- |
-| `inputDir` | Yes | Base directory containing raw or structured FASTQ files. |
-| `outDir` | Yes | Output directory for FastQC and MultiQC results. Must exist and be empty. |
-| `metadata` | Yes | Path to the metadata file containing sample names and folders. |
-| `metadata_sep` | Yes | Field separator used in the metadata file (e.g. `;` or `,`). |
-| `threads` | Yes | Number of parallel threads (positive integer; capped automatically to the available CPU cores). |
-| `quiet` | Yes | Set to `true` to suppress `INFO`/`PROCESS` log messages (also silences MultiQC's own logging via `--quiet`); set to `false` for verbose logging. Warnings, errors, and success messages are always shown regardless of this setting. |
 
 **Execution flow**
 
@@ -108,26 +82,12 @@ Exits with status `1` on any parameter, path, metadata, or MultiQC failure. Exit
 
 An R validation script invoked internally by `start.sh` before any FastQC execution begins. It verifies the structural integrity and content of the sample metadata file, preventing the pipeline from running against malformed input.
 
-**Usage**
-
-```bash
-Rscript check_samplemetadata.R <METADATA_FILE> <SEPARATOR> [SEQ_TYPE]
-```
-
-**Arguments**
-
-| Argument | Required | Description |
-| :--- | :--- | :--- |
-| `METADATA_FILE` | Yes | Path to the metadata CSV/TSV file to validate. |
-| `SEPARATOR` | Yes | Field separator used in the file (e.g. `;` or `,`). |
-| `SEQ_TYPE` | No | Sequencing mode check: `se` (Single-End) or `pe` (Paired-End). Not passed by `start.sh`. |
-
 **Validation checks performed**
 
 1. Confirms the metadata file exists and is not empty.
 2. Confirms the specified `SEPARATOR` is actually present in the header line.
 3. Rejects the file if it contains blank lines.
-4. Confirms the presence of all expected columns: `SampleName`, `SampleFolder`, `sampleNumber`, `Batch`, `Covariate`, `VisName`.
+4. Confirms the presence of all expected columns: `SampleName`, `SampleFolder`, `SampleNumber`, `Batch`, `Covariate`, `VisName`.
 5. Rejects missing/empty values in the required columns `SampleName`, `SampleNumber`, `Covariate`, `VisName`.
 6. Validates the `Batch` column, allowing either a populated value or an explicit `NA`/`N/A` placeholder (case-insensitive); truly empty cells are rejected.
 7. If `SEQ_TYPE` is provided, validates the frequency of `SampleNumber` values: exactly one occurrence per sample for `se` mode, exactly two occurrences per sample for `pe` mode.
