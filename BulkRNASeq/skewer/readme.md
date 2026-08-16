@@ -13,41 +13,18 @@ Upon completion of all sample-level trimming runs, the workflow writes an update
 The tool is packaged and distributed via GitHub Container Registry (GHCR) under the Docker image:
 `ghcr.io/reproduciblebioinformatics/docker4seq-skewer-v2:latest`
 
-### Command Syntax
-
-```bash
-docker run --rm \
-  -v /path/to/workdir:/workDir \
-  -v /path/to/fastq_dir:/data_fastq \
-  -v /path/to/results_dir:/results \
-  ghcr.io/reproduciblebioinformatics/docker4seq-skewer-v2:latest \
-  bash /home/start.sh <inputDir> <outDir> <adapter5> <adapter3> <seq_type> <metadata> <separator> <threads> <quiet>
-```
-
----
-
-## Directory Mounts (Volume Mapping)
-
-| Mount Point | Flag | Description |
-| :--- | :--- | :--- |
-| `/workDir` | `io` | Working folder for execution and temporary file storage. |
-| `/data_fastq` | `in` | Input folder where raw FASTQ files are located. |
-| `/results` | `out` | Destination directory where trimmed FASTQ files and the updated metadata file are written. |
-
----
-
 ## Inputs & Configuration Parameters
 
 ### File Inputs
 
-* **`metadata`** (`flag: cp`): Path to the sample metadata file (CSV or TSV format). It maps samples to FASTQ files via the `SampleName` column (and optional `SampleFolder` column), and pairs Paired-End reads via the `SampleNumber` column.
+* **`metadata`**: Path to the sample metadata file (CSV or TSV format). It maps samples to FASTQ files via the `SampleName` column (and optional `SampleFolder` column), and pairs Paired-End reads via the `SampleNumber` column.
 
 ### Command-line Parameters
 
 | Parameter | Description |
 | :--- | :--- |
 | **`inputDir`** | Specifies the container-relative or absolute path to input FASTQ files (`/data_fastq`). |
-| **`outDir`** | Specifies the container-relative or absolute path where execution results will be written (`/results`). Must exist and be empty. |
+| **`outDir`** | Specifies the container-relative or absolute path where execution results will be written (`/results`). |
 | **`adapter5`** | Character string indicating the 5' adapter sequence (DNA bases only, IUPAC ambiguity codes allowed). Default: `AGATCGGAAGAGCACACGTCTGAACTCCAGTCA`. |
 | **`adapter3`** | Character string indicating the 3' adapter sequence. Required for Paired-End (`pe`) mode; for Single-End (`se`) mode, pass `none`, `null`, or `""`. Default: `AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT`. |
 | **`seq_type`** | Sequencing mode: `se` (Single-End) or `pe` (Paired-End). |
@@ -60,7 +37,27 @@ docker run --rm \
 
 ## Implementation Details
 
-The workflow execution logic was generated using the **Baryon** configuration parser and builder. Specifically, the generated Python script derived from the `skewer.bala` specification can be used to execute, benchmark, and validate the adapter-trimming pipeline across test datasets.
+The workflow execution logic was generated using the **Baryon** configuration parser and builder. Specifically, the generated Python script (`skewer.py`)—derived from the `skewer.bala` specification—was utilized to execute, benchmark, and validate the adapter-trimming pipeline across test datasets. The `raw_data` directory contains the datasets used for testing.
+
+**Test command line:**
+
+```bash
+python skewer.py "./workdir" "./raw_data" "./results" "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA" "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" "pe" "./raw_data/sampleMetaData.csv" "," 10 false
+```
+
+---
+### Manual Docker Launch Example
+
+When running the container manually (i.e., not via a Baryon-generated script), the sample metadata file is **not** automatically placed inside the working directory. You must therefore mount, as `/workDir`, the local folder that actually contains your metadata file, so that the script can locate it at `/workDir/<metadata>`.
+
+```bash
+docker run --rm \
+  -v /path/to/workdir:/workDir \
+  -v /path/to/fastq_dir:/data_fastq \
+  -v /path/to/results_dir:/results \
+  ghcr.io/reproduciblebioinformatics/docker4seq-skewer-v2:latest \
+  bash /home/start.sh /data_fastq /results <adapter5> <adapter3> <seq_type> /workDir/<metadata> <separator> <threads> <quiet>
+```
 
 ---
 
@@ -69,26 +66,6 @@ The workflow execution logic was generated using the **Baryon** configuration pa
 ### `start.sh`
 
 The entrypoint script invoked by the container (`bash /home/start.sh ...`). It orchestrates the full pipeline: argument validation, metadata validation, per-sample (or per-pair) Skewer execution, and generation of the updated metadata file.
-
-**Usage**
-
-```bash
-bash start.sh <inputDir> <outDir> <adapter5> <adapter3> <seq_type> <metadata> <separator> <threads> <quiet>
-```
-
-**Arguments**
-
-| Argument | Required | Description |
-| :--- | :--- | :--- |
-| `inputDir` | Yes | Base directory containing raw or structured FASTQ files. |
-| `outDir` | Yes | Output directory for trimmed FASTQ results. Must exist and be empty. |
-| `adapter5` | Yes | 5' adapter sequence (DNA bases only). |
-| `adapter3` | Yes | 3' adapter sequence; required for `pe`, use `none`/`null`/`""` for `se`. |
-| `seq_type` | Yes | Sequencing type: `se` (Single-End) or `pe` (Paired-End). |
-| `metadata` | Yes | Path to the metadata file containing sample names and folders. |
-| `separator` | Yes | Field separator used in the metadata file (e.g. `;` or `,`; any other value is treated as tab). |
-| `threads` | Yes | Number of parallel threads (positive integer; capped automatically to the available CPU cores). |
-| `quiet` | Yes | Set to `true` to suppress `INFO`/`PROCESS` log messages; set to `false` for verbose logging. Warnings, errors, and success messages are always shown regardless of this setting. |
 
 **Execution flow**
 
@@ -113,21 +90,6 @@ Exits with status `1` on any parameter, path, metadata, or Skewer failure (with 
 ### `check_samplemetadata.R`
 
 An R validation script invoked internally by `start.sh` before any Skewer execution begins. It verifies the structural integrity and content of the sample metadata file, preventing the pipeline from running against malformed input.
-
-**Usage**
-
-```bash
-Rscript check_samplemetadata.R <METADATA_FILE> <SEPARATOR> <SEQ_TYPE> <QUIET>
-```
-
-**Arguments**
-
-| Argument | Required | Description |
-| :--- | :--- | :--- |
-| `METADATA_FILE` | Yes | Path to the metadata CSV/TSV file to validate. |
-| `SEPARATOR` | Yes | Field separator used in the file (e.g. `;` or `,` or `tab`). |
-| `SEQ_TYPE` | Yes | Sequencing mode check: `se` (Single-End) or `pe` (Paired-End). Pass `""`, `none`, or `null` to skip the frequency check. Always passed by `start.sh`. |
-| `QUIET` | Yes | Set to `true` to suppress `INFO`/`PROCESS` log messages; set to `false` for verbose logging. |
 
 **Validation checks performed**
 
