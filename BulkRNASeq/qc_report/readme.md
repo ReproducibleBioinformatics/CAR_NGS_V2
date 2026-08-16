@@ -128,9 +128,9 @@ Rscript check_samplemetadata.R <METADATA_FILE> <SEPARATOR> [SEQ_TYPE]
 2. Confirms the specified `SEPARATOR` is actually present in the header line.
 3. Rejects the file if it contains blank lines.
 4. Confirms the presence of all expected columns: `SampleName`, `SampleFolder`, `sampleNumber`, `Batch`, `Covariate`, `VisName`.
-5. Rejects missing/empty values in the required columns `SampleName`, `sampleNumber`, `Covariate`, `VisName`.
+5. Rejects missing/empty values in the required columns `SampleName`, `SampleNumber`, `Covariate`, `VisName`.
 6. Validates the `Batch` column, allowing either a populated value or an explicit `NA`/`N/A` placeholder (case-insensitive); truly empty cells are rejected.
-7. If `SEQ_TYPE` is provided, validates the frequency of `sampleNumber` values: exactly one occurrence per sample for `se` mode, exactly two occurrences per sample for `pe` mode.
+7. If `SEQ_TYPE` is provided, validates the frequency of `SampleNumber` values: exactly one occurrence per sample for `se` mode, exactly two occurrences per sample for `pe` mode.
 
 **Exit behavior**
 
