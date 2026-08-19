@@ -2,7 +2,7 @@
 
 `rsemstarindex` is a containerized workflow designed to automate the generation of RSEM/STAR genome reference indexes for RNA-Seq quantification pipelines.
 
-The workflow takes a reference genome FASTA file and a gene annotation GTF file (typically sourced from ENSEMBL), optionally applies a genome filtering strategy to remove mitochondrial sequences and/or long-name scaffolds/contigs, and then builds the combined [RSEM](https://github.com/deweylab/RSEM)/[STAR](https://github.com/alexdobin/STAR) reference index via `rsem-prepare-reference --star`. Both the FASTA and GTF inputs may be provided either as plain-text or gzip-compressed (`.gz`) files. The resulting index files are written directly to the designated output folder (`outDir`), ready to be used as input for downstream STAR alignment and RSEM quantification steps.
+The workflow takes a reference genome FASTA file and a gene annotation GTF file (typically sourced from ENSEMBL), optionally applies a genome filtering strategy to remove mitochondrial sequences and/or long-name scaffolds/contigs, and then builds the combined [RSEM](https://github.com/deweylab/RSEM)/[STAR](https://github.com/alexdobin/STAR) reference index via `rsem-prepare-reference --star`. Both the FASTA and GTF inputs may be provided either as plain-text or gzip-compressed (`.gz`) files. The resulting index files are written directly to the designated output folder (`/results`), ready to be used as input for downstream STAR alignment and RSEM quantification steps.
 
 ---
 
@@ -11,63 +11,30 @@ The workflow takes a reference genome FASTA file and a gene annotation GTF file 
 The tool is packaged and distributed via GitHub Container Registry (GHCR) under the Docker image:
 `ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarindex-v2:latest`
 
-Execution is driven by a wrapper script generated from the `rsemstarindex.bala` specification via [**Baryon**](https://github.com/Fairflow-BioinformaticsFramework/Baryonlang), Fairflow's `.bala`-to-source-code generator. Baryon translates the `.bala` specification into an equivalent runnable script in the target language (Python, R, etc.), which validates the inputs, prepares an isolated scratch working directory, copies every file declared with `flag=cp` in the `.bala` spec (`fastafile`, `gtffile`) into it, assembles the corresponding `docker run` command from the `.bala` `usage` template, and finally executes it. See the [Baryon repository](https://github.com/Fairflow-BioinformaticsFramework/Baryonlang) for details on installing Baryon and generating the wrapper script for your language of choice.
-
-### Command Syntax
-
-```bash
-python rsemstarindex.py <workdir> <outdir> <fastafile> <gtffile> <filter> <chrom_pattern> <threads> <quiet>
-```
-
-### Manual Docker Execution
-
-Users who prefer to skip the Baryon-generated wrapper can invoke the container directly with `docker run`. In that case, the `flag=cp` inputs (`fastafile`, `gtffile`) must be copied (or bind-mounted) into the `/workDir` mount beforehand, since `start.sh` expects plain filesystem paths, not host paths outside the container:
-
-```bash
-docker run --rm \
-  -v /path/to/workdir:/workDir \
-  -v /path/to/results_dir:/results \
-  ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarindex-v2:latest \
-  bash /home/start.sh /results /workDir/<fastafile> /workDir/<gtffile> <filter> [threads] [chrom_pattern] [quiet]
-```
-
-where `<fastafile>` and `<gtffile>` are the names of the FASTA/GTF files previously copied into `/path/to/workdir` on the host (so that they appear under `/workDir` inside the container). See the [`start.sh`](#startsh) section below for the full argument reference.
-
----
-
-## Directory Mounts (Volume Mapping)
-
-| Mount Point | Flag | Description |
-| :--- | :--- | :--- |
-| `/workDir` | `io` | Working folder for execution and temporary file storage. In the Baryon-generated workflow this is mapped to an auto-numbered `<workdir>/scratchN` folder, into which every `flag=cp` file (`fastafile`, `gtffile`) is copied before the container starts; when running manually, the same files must be copied here by hand. |
-| `/results` | `out` | Scratch/destination directory where the container is mounted and the RSEM/STAR genome index is written. In the Baryon-generated workflow this is mapped to an auto-numbered `<outdir>/outputN` folder. |
-
----
-
 ## Inputs & Configuration Parameters
 
 ### File Inputs
 
-* **`fastafile`** (`flag: cp`): Contains the raw DNA sequence (chromosomes) of the reference genome, used by STAR as the blueprint for alignment. Accepts `.fa` or `.fa.gz`.
-* **`gtffile`** (`flag: cp`): Contains the gene annotations (coordinates of exons, introns, and transcripts), used by RSEM to quantify gene expression. Accepts `.gtf` or `.gtf.gz`.
+* **`fastafile`**: Path to the input genome FASTA file (`.fa` or `.fa.gz`), containing the raw DNA sequence (chromosomes) of the reference genome, used by STAR as the blueprint for alignment.
+* **`gtffile`**: Path to the input gene annotation GTF file (`.gtf` or `.gtf.gz`), containing the gene annotations (coordinates of exons, introns, and transcripts), used by RSEM to quantify gene expression.
 
 ### Command-line Parameters
 
 | Parameter | Description |
 | :--- | :--- |
 | **`outDir`** | Output directory for the generated RSEM/STAR genome index. Must exist and be empty. |
-| **`fastafile`** | Path to the input genome FASTA file (`.fa` or `.fa.gz`). |
-| **`gtffile`** | Path to the input gene annotation GTF file (`.gtf` or `.gtf.gz`). |
+| **`fastafile`** | Path to the input genome FASTA file passed to the script. |
+| **`gtffile`** | Path to the input gene annotation GTF file passed to the script. |
 | **`filter`** | Genome filtering strategy applied prior to indexing. Allowed values: `none` (no filtering), `all` (removes mitochondrial DNA and long-name/non-standard scaffolds), `mito` (removes mitochondrial DNA only), `chrom` (removes long-name/non-standard scaffolds only). |
-| **`threads`** | Integer indicating the number of CPU cores to be used by the application (Optional, default: `1`). Requests exceeding available CPU cores are automatically capped. |
-| **`chrom_pattern`** | Optional regex to override the default chromosome-naming pattern used to identify main chromosomes when `filter` is `all` or `chrom` (e.g., `^chr[0-9]+$`). Leave empty or pass `null` to keep the default pattern. |
-| **`quiet`** | Set to `true` to suppress tool `INFO`/`PROCESS` log messages; set to `false` to keep verbose logging enabled (Optional, default: `false`). Warnings, errors, and success messages are always shown regardless of this setting. |
+| **`chrom_pattern`** | Optional regex to override the default chromosome-naming pattern used to identify main chromosomes when `filter` is `all` or `chrom`. Leave empty or pass `null` to keep the default pattern. |
+| **`threads`** | Integer indicating the number of CPU cores to be used by the application. |
+| **`quiet`** | Set to `true` to suppress tool processing messages; set to `false` to keep verbose logging enabled. |
 
 ---
 
 ## Implementation Details
 
-The workflow execution logic was generated using [**Baryon**](https://github.com/Fairflow-BioinformaticsFramework/Baryonlang), Fairflow's configuration parser and code builder. Specifically, the generated Python script (`rsemstarindex.py`)—derived from the `rsemstarindex.bala` specification—was used to execute, benchmark, and validate the indexing pipeline. Baryon can regenerate the equivalent wrapper in other supported target languages directly from the same `.bala` file; refer to the Baryon repository for the list of supported languages and generation instructions. The workflow wraps [RSEM](https://github.com/deweylab/RSEM) 1.3.3 and [STAR](https://github.com/alexdobin/STAR) 2.7.11b, both installed inside the container image, and executes `rsem-prepare-reference --star` to build a combined RSEM/STAR genome index using an ENSEMBL-style genome FASTA file and its corresponding GTF annotation.
+The workflow execution logic was generated using the **Baryon** configuration parser and builder. Specifically, the generated Python script (`rsemstarindex.py`)—derived from the `.bala` specification—was utilized to execute, benchmark, and validate the indexing pipeline across test datasets. The `raw_data` directory contains the datasets used for testing. The workflow wraps RSEM 1.3.3 and STAR 2.7.11b, both installed inside the container image.
 
 **Test command line:**
 
@@ -76,70 +43,52 @@ python rsemstarindex.py "./workdir" "./results" "./raw_data/genome.fa.gz" "./raw
 ```
 
 ---
+### Manual Docker Launch Example
+
+When running the container manually (i.e., not via a Baryon-generated script), the `fastafile` and `gtffile` inputs are **not** automatically placed inside the working directory. You must therefore mount, as `/workDir`, the local folder that actually contains your genome FASTA and GTF files, so that the script can locate them at `/workDir/<fastafile>` and `/workDir/<gtffile>`.
+
+```bash
+docker run --rm \
+  -v /path/to/workdir:/workDir \
+  -v /path/to/results_dir:/results \
+  ghcr.io/reproduciblebioinformatics/docker4seq-rsemstarindex-v2:latest \
+  bash /home/start.sh /results /workDir/<fastafile> /workDir/<gtffile> <filter> <chrom_pattern> <threads> <quiet>
+```
+
+---
 
 ## Auxiliary Scripts
 
 ### `start.sh`
 
-The entrypoint script invoked inside the container (`bash /home/start.sh ...`), launched either by the Baryon-generated wrapper or manually via `docker run`. It orchestrates the full in-container pipeline: argument validation, input decompression, optional genome filtering, and RSEM/STAR reference index generation.
-
-**Usage**
-
-```bash
-bash start.sh <outDir> <fastafile> <gtffile> <filter> [threads] [chrom_pattern] [quiet]
-```
-
-**Arguments**
-
-| Argument | Required | Description |
-| :--- | :--- | :--- |
-| `outDir` | Yes | Output directory for pipeline results. Must exist and be empty. |
-| `fastafile` | Yes | Path to the input genome FASTA file (`.fa` or `.fa.gz`). |
-| `gtffile` | Yes | Path to the input gene annotation GTF file (`.gtf` or `.gtf.gz`). |
-| `filter` | Yes | Filtering mode: `none`, `all`, `mito`, `chrom`. |
-| `threads` | No | Number of parallel threads (positive integer; capped automatically to the available CPU cores). Default: `1`. |
-| `chrom_pattern` | No | Chromosome regex filter pattern (e.g. `chr1` or `(1)`), used only when `filter` is `all` or `chrom`. |
-| `quiet` | No | Set to `true` to suppress `INFO`/`PROCESS` log messages; set to `false` for verbose logging. Default: `false`. |
+The entrypoint script invoked by the container (`bash /home/start.sh ...`). It orchestrates the full pipeline: argument validation, input decompression, optional genome filtering, and RSEM/STAR reference index generation.
 
 **Execution flow**
 
-1. Validates argument count (at least 4 required) and the `quiet` value (`true`/`false`).
+1. Validates argument count and the `quiet` value (`true`/`false`).
 2. Validates `threads` (must be a positive integer; requests exceeding available CPU cores are capped with a warning).
 3. Checks that `outDir` exists and is empty, and that both `fastafile` and `gtffile` exist.
 4. Validates the `filter` value (`none`, `all`, `mito`, `chrom`).
 5. Decompresses `fastafile` and `gtffile` into a temporary working folder if they are gzip-compressed (`.gz`), otherwise copies them as-is.
 6. Depending on `filter`:
-   - `none`: skips all filtering steps.
-   - `all` or `mito`: runs `remove_mitochondrion.R` to strip mitochondrial sequences from the FASTA (a "no mitochondrial sequence found" result is treated as a non-fatal warning).
-   - `all` or `chrom`: runs `filter_chromosomes.R` to retain only main chromosomes/scaffolds, based on `chrom_pattern` if provided, or the default naming pattern otherwise.
+   * `none`: skips all filtering steps.
+   * `all` or `mito`: runs `remove_mitochondrion.R` to strip mitochondrial sequences from the FASTA (a "no mitochondrial sequence found" result is treated as a non-fatal warning).
+   * `all` or `chrom`: runs `filter_chromosomes.R` to retain only main chromosomes/scaffolds, based on `chrom_pattern` if provided, or the default naming pattern otherwise.
 7. Aborts the pipeline (cleaning up temporary files) if any filtering step fails.
 8. Runs `rsem-prepare-reference --star` on the (optionally filtered) FASTA and GTF files, writing the resulting `genome.*` index files into `outDir`.
 9. Removes temporary decompressed files and reports success or failure.
 
 **Exit behavior**
 
-Exits with status `1` on invalid arguments, `quiet`, `threads`, or `filter` values, or on a missing/non-empty `outDir`. Exits with status `3` on missing `fastafile`/`gtffile` or unsupported `filter` value. Exits with a non-zero status inherited from the failing step if filtering or `rsem-prepare-reference` fails. Exits with status `0` and a success message once the RSEM/STAR index has been generated.
+Exits with status `1` on any parameter, path, filter-value, or filtering-step failure. Exits with a non-zero status inherited from `rsem-prepare-reference` if it fails. Exits with status `0` and a success message once the RSEM/STAR index has been generated.
 
 ### `remove_mitochondrion.R`
 
 An R script invoked internally by `start.sh` (when `filter` is `all` or `mito`) to remove mitochondrial sequences from the genome FASTA file before indexing.
 
-**Usage**
+**Validation checks performed**
 
-```bash
-Rscript remove_mitochondrion.R <genome_path.fa> [quiet]
-```
-
-**Arguments**
-
-| Argument | Required | Description |
-| :--- | :--- | :--- |
-| `genome_path.fa` | Yes | Path to the input FASTA file (edited in place). |
-| `quiet` | No | Suppress processing log messages: `true` or `false` (default: `false`). |
-
-**Behavior**
-
-1. Validates that the FASTA file exists and that the `quiet` value is `true`/`false`.
+1. Confirms the FASTA file exists and that the `quiet` value is `true`/`false`.
 2. Loads the FASTA file via `Biostrings::readDNAStringSet`.
 3. Searches sequence names for mitochondrial identifiers matching `^MT|^mitochondrion|^M$` (case-insensitive).
 4. If matches are found, removes them and overwrites the FASTA file with the filtered sequence set.
@@ -153,24 +102,10 @@ Exits with status `0` on successful removal, status `2` if the FASTA file does n
 
 An R script invoked internally by `start.sh` (when `filter` is `all` or `chrom`) to retain only the main chromosomes/scaffolds in the genome FASTA file before indexing.
 
-**Usage**
+**Validation checks performed**
 
-```bash
-Rscript filter_chromosomes.R <genome_path.fa> [chrom_pattern] [quiet]
-```
-
-**Arguments**
-
-| Argument | Required | Description |
-| :--- | :--- | :--- |
-| `genome_path.fa` | Yes | Path to the input FASTA file (edited in place). |
-| `chrom_pattern` | No | Regex filter pattern for chromosome naming. Pass an empty string or `null` to use the default pattern `^(chr)?([0-9]{1,3}|[XYZW]|MT?)$`. |
-| `quiet` | No | Suppress processing log messages: `true` or `false` (default: `false`). |
-
-**Behavior**
-
-1. Validates that the FASTA file exists and that the `quiet` value is `true`/`false`.
-2. Validates the supplied `chrom_pattern` regex, if provided, falling back to the default pattern otherwise.
+1. Confirms the FASTA file exists and that the `quiet` value is `true`/`false`.
+2. Validates the supplied `chrom_pattern` regex, if provided, falling back to the default pattern `^(chr)?([0-9]{1,3}|[XYZW]|MT?)$` otherwise.
 3. Loads the FASTA file via `Biostrings::readDNAStringSet` and matches sequence identifiers against the pattern.
 4. If at least one sequence matches the naming pattern, keeps only the matching sequences.
 5. If no sequence matches the naming pattern, falls back to a length-distribution heuristic: sequences are sorted by length and split at the largest consecutive length-ratio gap, retaining the longer (main) sequences and discarding the rest.
@@ -179,15 +114,3 @@ Rscript filter_chromosomes.R <genome_path.fa> [chrom_pattern] [quiet]
 **Exit behavior**
 
 Exits with status `1` on missing FASTA file, invalid regex pattern, invalid `quiet` value, or if the selection logic discards all sequences. Exits with status `0` once chromosome filtering completes successfully.
-
----
-
-## Docker Image
-
-The image is based on `ubuntu:24.04` and bundles:
-
-* **R** (base + `r-bioc-biostrings`) for the filtering scripts.
-* **RSEM 1.3.3**, installed under `/usr/local/bin/RSEM-1.3.3` and added to `PATH`.
-* **STAR 2.7.11b**, built from source archive and installed as `/usr/local/bin/STAR`.
-
-`start.sh`, `filter_chromosomes.R`, and `remove_mitochondrion.R` are copied into `/home` and set as executable. The container's default working directory is `/home`, with `bash` as the default `CMD`.

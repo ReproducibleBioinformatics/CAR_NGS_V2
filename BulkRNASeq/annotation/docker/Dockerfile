@@ -5,6 +5,7 @@ ENV TZ=Etc/UTC
 RUN apt-get update && apt-get install -y --no-install-recommends \
     r-base \
     r-cran-data.table \
+    r-cran-r.utils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
