@@ -6,7 +6,7 @@ name=annotation
 command=docker run --rm
 script= bash /home/start.sh
 image= ghcr.io/reproduciblebioinformatics/docker4seq-annotation-v2:latest
-usage= <workDir> <inputDir> <outDir> <annotation_file> <gene_biotype> <metadata> <metadata_sep> <threads> <quiet>
+usage= <inputDir> <outDir> <annotation_file> <gene_biotype> <metadata> <metadata_sep> <threads> <quiet>
 #
 [directory]
 name=workDir

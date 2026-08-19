@@ -12,10 +12,9 @@ log_sep() { [ "$QUIET" == "true" ] && return; echo -e "${2:-$CYAN}$(printf '%0.s
 show_usage() {
     log_sep "-" "$YELLOW"
     echo -e "${YELLOW}Usage:${NC}"
-    echo -e "  $0 <workdir> <input_dir> <results> <annotation_file> <gene_biotype> <metadata> <metadata_sep> <threads> <quiet>"
+    echo -e "  $0 <input_dir> <results> <annotation_file> <gene_biotype> <metadata> <metadata_sep> <threads> <quiet>"
     echo ""
     echo -e "${YELLOW}Arguments (all mandatory):${NC}"
-    echo -e "  ${CYAN}workdir${NC}         Working directory for intermediate cache files"
     echo -e "  ${CYAN}input_dir${NC}       Directory containing RSEM results files (*.genes.results)"
     echo -e "  ${CYAN}results${NC}         Output directory for aggregated expression tables"
     echo -e "  ${CYAN}annotation_file${NC} Path to reference annotation GTF/GFF3 file"
@@ -46,15 +45,14 @@ parse_separator_inplace() {
 # ------- Argument Checking All arguments are mandatory ------- #
 if [ "$#" -ne 9 ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then show_usage; exit 1; fi
 # ------- Positional Arguments Assignment ------- #
-workdir="${1}"
-input_dir="${2}"
-results="${3}"
-annotation_file="${4}"
-gene_biotype="${5}"
-metadata="${6}"
-metadata_sep="${7}"
-threads="${8}"
-quiet="${9}"
+input_dir="${1}"
+results="${2}"
+annotation_file="${3}"
+gene_biotype="${4}"
+metadata="${5}"
+metadata_sep="${6}"
+threads="${7}"
+quiet="${8}"
 # ------- Validate Quiet Parameter ------- #
 if [ "$quiet" != "true" ] && [ "$quiet" != "false" ]; then log_warn "Invalid quiet parameter '$quiet', defaulting to 'false'"; quiet="false"; fi; QUIET="$quiet"
 # ------- Print Pipeline Execution Context ------- #
@@ -62,7 +60,6 @@ if [ "$QUIET" == "false" ]; then
     log_sep "=" "$CYAN"
     log_info "Pipeline Execution Context:"
     echo -e "  ${CYAN}Docker Container:${NC} ${GREEN}${DOCKER_NAME}${NC}"
-    echo -e "  ${CYAN}Work Dir        :${NC} ${YELLOW}${workdir}${NC}"
     echo -e "  ${CYAN}Input Dir       :${NC} ${YELLOW}${input_dir}${NC}"
     echo -e "  ${CYAN}Results Dir     :${NC} ${YELLOW}${results}${NC}"
     echo -e "  ${CYAN}Annotation File :${NC} ${YELLOW}${annotation_file}${NC}"
@@ -72,7 +69,6 @@ if [ "$QUIET" == "false" ]; then
     echo -e "  ${CYAN}Threads         :${NC} ${YELLOW}${threads}${NC}"
     echo -e "  ${CYAN}Quiet Mode      :${NC} ${YELLOW}${quiet}${NC}"
     log_sep "=" "$CYAN"
-    log_info "Initializing Annotation Pipeline Wrapper"
 fi
 # ------- Validate an optimize Threads Parameter and allocation ------- #
 max_cores=$(nproc)
@@ -84,8 +80,6 @@ if [ ! -d "$results" ]; then log_error "Results directory '$results' does not ex
 if [ -n "$(find "$results" -mindepth 1 -print -quit 2>/dev/null)" ]; then log_error "Results directory '$results' is not empty. Terminating pipeline to prevent overwriting existing data."; exit 1; fi
 # ------- Check Input Directory ------- #
 if [ ! -d "$input_dir" ]; then log_error "Input directory '$input_dir' does not exist."; exit 1; fi
-# ------- Check Work Directory ------- #
-if [ ! -d "$workdir" ]; then log_error "Working directory '$workdir' does not exist."; exit 1; fi
 # ------- Check Annotation File ------- #
 if [ ! -f "$annotation_file" ]; then log_error "Annotation file '$annotation_file' does not exist."; exit 1; fi
 # ------- Check Metadata File ------- #
@@ -104,7 +98,6 @@ log_info "Found $genes_count genes.results file(s) in the input directory."
 gene_map_cache="${input_dir}/gene_annotation_map.tsv"
 Rscript /usr/local/bin/extract_gene_mapping.R "$annotation_file" "$gene_biotype" "$gene_map_cache" "$threads" "$quiet"
 if [ $? -ne 0 ] || [ ! -f "$gene_map_cache" ]; then log_error "Failed to build gene annotation mapping from '$annotation_file'."; exit 2; fi
-log_success "Gene mapping extraction completed: $gene_map_cache"
 # ------- Step 2: Aggregate and Annotate Expression Matrices ------- #
 Rscript /usr/local/bin/generate_expression_tables.R "$metadata" "$metadata_sep" "$input_dir" "$results" "$gene_biotype" "$gene_map_cache" "$threads" "$quiet"
 if [ $? -ne 0 ]; then log_error "Failed to aggregate expression matrices."; exit 3; fi
