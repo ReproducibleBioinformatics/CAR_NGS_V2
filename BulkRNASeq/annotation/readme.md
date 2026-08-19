@@ -89,14 +89,13 @@ The entrypoint script invoked inside the container (`bash /home/start.sh ...`), 
 **Usage**
 
 ```bash
-bash start.sh <workdir> <input_dir> <results> <annotation_file> <gene_biotype> <metadata> <metadata_sep> <threads> <quiet>
+bash start.sh <input_dir> <results> <annotation_file> <gene_biotype> <metadata> <metadata_sep> <threads> <quiet>
 ```
 
 **Arguments (all mandatory)**
 
 | Argument | Description |
 | :--- | :--- |
-| `workdir` | Working directory for intermediate cache files (e.g. the gene annotation mapping). Must exist. |
 | `input_dir` | Directory containing RSEM results files (`*.genes.results`). Must exist and contain at least one matching file. |
 | `results` | Output directory for aggregated expression tables. Must exist and be empty. |
 | `annotation_file` | Path to reference annotation GTF/GFF3 file. Must exist. |

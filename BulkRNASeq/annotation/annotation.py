@@ -111,9 +111,9 @@ def main():
     docker_vals['quiet'] = args['quiet']
 
     # --- Assemble docker command ---
-    cmd = ' ghcr.io/reproduciblebioinformatics/docker4seq-annotation-v2:latest bash /home/start.sh <workdir> <inputdir> <outdir> <annotation_file> <gene_biotype> <metadata> <metadata_sep> <threads> <quiet>'
+    cmd = ' ghcr.io/reproduciblebioinformatics/docker4seq-annotation-v2:latest bash /home/start.sh <inputdir> <outdir> <annotation_file> <gene_biotype> <metadata> <metadata_sep> <threads> <quiet>'
     mount_str = ' '.join(mounts)
-    cmd = ' '.join(['docker run --rm', mount_str, ' ghcr.io/reproduciblebioinformatics/docker4seq-annotation-v2:latest bash /home/start.sh <workdir> <inputdir> <outdir> <annotation_file> <gene_biotype> <metadata> <metadata_sep> <threads> <quiet>'])
+    cmd = ' '.join(['docker run --rm', mount_str, ' ghcr.io/reproduciblebioinformatics/docker4seq-annotation-v2:latest bash /home/start.sh <inputdir> <outdir> <annotation_file> <gene_biotype> <metadata> <metadata_sep> <threads> <quiet>'])
     PARAM_NAMES = ['gene_biotype', 'metadata_sep', 'threads', 'quiet']
     def replace_placeholder(match):
         key = match.group(1)

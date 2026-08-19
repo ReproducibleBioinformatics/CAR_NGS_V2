@@ -118,7 +118,6 @@ main <- function() {
   all_rsem_isos  <- unique(unlist(lapply(iso_files,  function(f) fread(f, select = "transcript_id", header = TRUE)$transcript_id)))
   log_info(paste0("Found ", length(all_rsem_genes), " unique genes and ", length(all_rsem_isos), " unique isoforms across samples."))
   # ------- Core Step 2: Annotate Genes ------- #
-  log_step("Annotating RSEM genes using mapping file...")
   map_dt <- fread(mapping_file, sep = "\t", header = TRUE)
   setkey(map_dt, gene_id)
   rsem_map <- data.table(gene_id = all_rsem_genes)
