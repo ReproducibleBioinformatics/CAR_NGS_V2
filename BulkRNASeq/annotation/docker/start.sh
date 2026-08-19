@@ -101,7 +101,7 @@ genes_count=$(find "$input_dir" -maxdepth 1 -type f -name "*.genes.results" | wc
 if [ "$genes_count" -eq 0 ]; then log_error "No *.genes.results files found in $input_dir."; exit 1; fi
 log_info "Found $genes_count genes.results file(s) in the input directory."
 # ------- Step 1: Extract Gene Mapping from Annotation File ------- #
-gene_map_cache="${workdir}/gene_annotation_map.tsv"
+gene_map_cache="${input_dir}/gene_annotation_map.tsv"
 Rscript /usr/local/bin/extract_gene_mapping.R "$annotation_file" "$gene_biotype" "$gene_map_cache" "$threads" "$quiet"
 if [ $? -ne 0 ] || [ ! -f "$gene_map_cache" ]; then log_error "Failed to build gene annotation mapping from '$annotation_file'."; exit 2; fi
 log_success "Gene mapping extraction completed: $gene_map_cache"
