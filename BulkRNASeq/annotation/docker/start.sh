@@ -43,7 +43,7 @@ parse_separator_inplace() {
     esac
 }
 # ------- Argument Checking All arguments are mandatory ------- #
-if [ "$#" -ne 9 ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then show_usage; exit 1; fi
+if [ "$#" -ne 8 ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then show_usage; exit 1; fi
 # ------- Positional Arguments Assignment ------- #
 input_dir="${1}"
 results="${2}"
