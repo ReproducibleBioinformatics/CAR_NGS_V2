@@ -7,7 +7,7 @@ get_latest_output_dir() {
     local base_dir="${1}"
     local max_num=-1
     local latest_dir=""
-    if [ ! -d "$base_dir" ]; then  echo ""; return fi
+    if [ ! -d "$base_dir" ]; then echo ""; return; fi
     for dir in "${base_dir}"/output*; do
         if [ -d "$dir" ]; then
             folder_name=$(basename "$dir")
@@ -21,7 +21,6 @@ get_latest_output_dir() {
     echo "$latest_dir"
 }
 workdir="workdir"
-input_dir="../rsem/results"
 results="results/"
 annotation_file="../testdata/Genome/Drosophila_melanogaster.BDGP6.46.112.gtf"
 gene_biotype="protein_coding"
