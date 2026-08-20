@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY core.R /usr/local/bin/core.R
 RUN chmod +x /usr/local/bin/core.R
 
+COPY check_samplemetadata.R /usr/local/bin/check_samplemetadata.R
+RUN chmod +x /usr/local/bin/check_samplemetadata.R
+
 COPY start.sh /home/start.sh
 RUN chmod +x /home/start.sh
 

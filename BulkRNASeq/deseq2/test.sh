@@ -2,7 +2,7 @@
 SCRIPT_NAME="test-deseq2"
 workdir="workdir"
 results="results/"
-log2fc=1.0
+log2fc=0.585
 fdr=0.05
 ref_covar="cpes"
 target_covar="rescue"
