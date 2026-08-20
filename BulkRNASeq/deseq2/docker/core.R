@@ -41,7 +41,7 @@ log2fc           <- as.numeric(args[6])
 fdr              <- as.numeric(args[7])
 ref_covar        <- args[8]
 target_covar     <- args[9]
-threads          <- suppressWarnings(as.integer(args[10]))
+threads_arg      <- suppressWarnings(as.integer(args[10]))
 quiet_arg        <- args[11]
 quiet_clean <- tolower(quiet_arg)
 if (!quiet_clean %in% c("true", "false")) {log_error(sprintf("The QUIET parameter must be 'true' or 'false' (provided: '%s'). Defaulting to 'false' and continuing.", quiet_arg));
