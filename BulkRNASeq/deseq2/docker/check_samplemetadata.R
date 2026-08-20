@@ -77,15 +77,11 @@ validate_metadata <- function() {
       exit_with_error(sprintf("Column '%s' contains missing/empty values at row(s): %s.", col, paste(bad_rows, collapse = ", ")))
     }
   }
-  # ------- Specific validation for Batch: allows text values, as well as NA, N/A (case-insensitive) ------- #
-  batch_vals <- as.character(df[["Batch"]])
-  batch_empty_mask <- is.na(batch_vals) | trimws(batch_vals) == ""
-  batch_na_pattern_mask <- grepl("^(?i)(na|n/a)$", trimws(batch_vals))
-  invalid_batch_rows <- which(batch_empty_mask & !batch_na_pattern_mask)
-  if (length(invalid_batch_rows) > 0) {
-    bad_rows <- invalid_batch_rows + 1
-    exit_with_error(sprintf("Column 'Batch' contains invalid/empty values at row(s): %s.", paste(bad_rows, collapse = ", ")))}
-  # ------- 7. Check sequencing mode parameter (se / pe), when provided ------- #
+  # ------- 7. Check that rows sharing the same SampleNumber also share the same Batch, Covariate and VisName ------- #
+  sample_groups <- split(df[, c("Batch", "Covariate", "VisName")],df[["SampleNumber"]])
+  inconsistent_samples <- names(sample_groups)[vapply(sample_groups, function(x) {nrow(unique(x)) > 1}, logical(1))]
+  if (length(inconsistent_samples) > 0) {exit_with_error(sprintf( "SampleNumber(s) associated with inconsistent Batch, Covariate or VisName values: %s.", paste(inconsistent_samples, collapse = ", ")))}
+  # ------- 8. Check sequencing mode parameter (se / pe), when provided ------- #
   if (!is.null(seq_type)) {
     sample_counts <- table(df[["SampleNumber"]])
     if (seq_type == "se") {
@@ -102,5 +98,5 @@ validate_metadata <- function() {
   } 
   log_success("Metadata validation passed successfully with no errors.")
   quit(status = 0, save = "no")
-}
+}  
 validate_metadata()
