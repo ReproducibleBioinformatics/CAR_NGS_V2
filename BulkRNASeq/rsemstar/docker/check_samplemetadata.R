@@ -77,6 +77,22 @@ validate_metadata <- function() {
       exit_with_error(sprintf("Column '%s' contains missing/empty values at row(s): %s.", col, paste(bad_rows, collapse = ", ")))
     }
   }
+  # ------- Check SampleName + SampleFolder uniqueness ------- #
+  duplicated_sample_pairs <- duplicated(df[, c("SampleName", "SampleFolder")])
+  if (any(duplicated_sample_pairs)) {
+      duplicated_pairs <- unique(
+          df[duplicated_sample_pairs, c("SampleName", "SampleFolder")]
+      )
+      duplicated_pairs_text <- apply(
+          duplicated_pairs,
+          1,
+          function(x) paste(x, collapse = " / ")
+      )
+      exit_with_error(sprintf(
+          "The combination of 'SampleName' and 'SampleFolder' is duplicated: %s.",
+          paste(duplicated_pairs_text, collapse = ", ")
+      ))
+  }
   # ------- Specific validation for Batch: allows text values, as well as NA, N/A (case-insensitive) ------- #
   batch_vals <- as.character(df[["Batch"]])
   batch_empty_mask <- is.na(batch_vals) | trimws(batch_vals) == ""

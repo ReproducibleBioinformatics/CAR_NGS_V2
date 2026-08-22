@@ -6,7 +6,7 @@ name=pca
 command=docker run --rm
 script= bash /home/start.sh
 image= ghcr.io/reproduciblebioinformatics/docker4seq-pca-v2:latest
-usage= <outDir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <pca_type> <log_transform> <remove_zero_var> <threads> <quiet>
+usage= <outDir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <pca_type> <log_transform> <remove_zero_var> <blind> <threads> <quiet>
 #
 [directory]
 name=workDir
@@ -53,6 +53,11 @@ values = "true","false"
 [parameter]
 name = remove_zero_var
 description = Filters out non-informative features (genes with zero variance across samples) prior to PCA to avoid numerical errors in prcomp. If FALSE, all features are retained.
+values = "true","false"
+
+[parameter]
+name = blind
+description = Whether the variance-stabilizing transformation should ignore (TRUE) or account for (FALSE) the experimental design.
 values = "true","false"
 
 [parameter]

@@ -16,6 +16,9 @@ RUN chmod +x /usr/local/bin/plot_pca.R
 COPY run_deseq2.R /usr/local/bin/run_deseq2.R
 RUN chmod +x /usr/local/bin/run_deseq2.R
 
+COPY check_samplemetadata.R /usr/local/bin/check_samplemetadata.R
+RUN chmod +x /usr/local/bin/check_samplemetadata.R
+
 COPY start.sh /home/start.sh
 RUN chmod +x /home/start.sh
 
