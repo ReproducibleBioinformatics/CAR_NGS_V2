@@ -13,9 +13,9 @@ def main():
     if os.name == 'nt':
         os.system('color')
 
-    usage_str = ' '.join([f'\033[93m<workdir>{RESET}', f'\033[93m<outdir>{RESET}', f'\033[38;5;208m<matrix_path>{RESET}', f'\033[92m<matrix_sep>{RESET}', f'\033[38;5;208m<metadata>{RESET}', f'\033[92m<metadata_sep>{RESET}', f'\033[92m<pca_type>{RESET}', f'\033[92m<log_transform>{RESET}', f'\033[92m<remove_zero_var>{RESET}', f'\033[92m<threads>{RESET}', f'\033[92m<quiet>{RESET}'])
+    usage_str = ' '.join([f'\033[93m<workdir>{RESET}', f'\033[93m<outdir>{RESET}', f'\033[38;5;208m<matrix_path>{RESET}', f'\033[92m<matrix_sep>{RESET}', f'\033[38;5;208m<metadata>{RESET}', f'\033[92m<metadata_sep>{RESET}', f'\033[92m<pca_type>{RESET}', f'\033[92m<log_transform>{RESET}', f'\033[92m<remove_zero_var>{RESET}', f'\033[92m<blind>{RESET}', f'\033[92m<threads>{RESET}', f'\033[92m<quiet>{RESET}'])
 
-    if len(sys.argv) != 12:
+    if len(sys.argv) != 13:
         print(f'{WHITE}Usage: python pca.py {usage_str}{RESET}\n')
         print(f'{YELLOW}Generate PCA graph{RESET}\n')
         print(f'{WHITE}Arguments:{RESET}')
@@ -28,6 +28,7 @@ def main():
         print(f'\033[92mpca_type       {RESET}       Specifies the normalization and transformation method to apply to the expression matrix prior to Principal Component Analysis (PCA). Must be one of \"Standard\" (no advanced normalization), \"deseq\" (blind variance-stabilizing transformation), or \"deseqNormalized\" (design-aware, covariate-adjusted transformation).')
         print(f'\033[92mlog_transform  {RESET}       Applies a log_2(x + 1) transformation to the expression matrix before PCA to reduce skewness and stabilize variance. If FALSE, input values are processed as-is.')
         print(f'\033[92mremove_zero_var{RESET}       Filters out non-informative features (genes with zero variance across samples) prior to PCA to avoid numerical errors in prcomp. If FALSE, all features are retained.')
+        print(f'\033[92mblind          {RESET}       Whether the variance-stabilizing transformation should ignore (TRUE) or account for (FALSE) the experimental design.')
         print(f'\033[92mthreads        {RESET}       a number indicating the number of cores to be used from the application')
         print(f'\033[92mquiet          {RESET}       Set to \"true\" to suppress tool processing messages, set to \"false\" to keep verbose logging enabled.')
         sys.exit(1)
@@ -43,8 +44,9 @@ def main():
     args['pca_type'] = sys.argv[7]
     args['log_transform'] = sys.argv[8]
     args['remove_zero_var'] = sys.argv[9]
-    args['threads'] = sys.argv[10]
-    args['quiet'] = sys.argv[11]
+    args['blind'] = sys.argv[10]
+    args['threads'] = sys.argv[11]
+    args['quiet'] = sys.argv[12]
 
     # --- Input validation ---
     errors = []
@@ -67,6 +69,8 @@ def main():
         errors.append(f"""Invalid value for log_transform: {args["log_transform"]}. Allowed: ['true', 'false']""")
     if args['remove_zero_var'] not in ['true', 'false']:
         errors.append(f"""Invalid value for remove_zero_var: {args["remove_zero_var"]}. Allowed: ['true', 'false']""")
+    if args['blind'] not in ['true', 'false']:
+        errors.append(f"""Invalid value for blind: {args["blind"]}. Allowed: ['true', 'false']""")
     if args['quiet'] not in ['false', 'true']:
         errors.append(f"""Invalid value for quiet: {args["quiet"]}. Allowed: ['false', 'true']""")
 
@@ -114,14 +118,15 @@ def main():
     docker_vals['pca_type'] = args['pca_type']
     docker_vals['log_transform'] = args['log_transform']
     docker_vals['remove_zero_var'] = args['remove_zero_var']
+    docker_vals['blind'] = args['blind']
     docker_vals['threads'] = args['threads']
     docker_vals['quiet'] = args['quiet']
 
     # --- Assemble docker command ---
-    cmd = ' ghcr.io/reproduciblebioinformatics/docker4seq-pca-v2:latest bash /home/start.sh <outdir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <pca_type> <log_transform> <remove_zero_var> <threads> <quiet>'
+    cmd = ' ghcr.io/reproduciblebioinformatics/docker4seq-pca-v2:latest bash /home/start.sh <outdir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <pca_type> <log_transform> <remove_zero_var> <blind> <threads> <quiet>'
     mount_str = ' '.join(mounts)
-    cmd = ' '.join(['docker run --rm', mount_str, ' ghcr.io/reproduciblebioinformatics/docker4seq-pca-v2:latest bash /home/start.sh <outdir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <pca_type> <log_transform> <remove_zero_var> <threads> <quiet>'])
-    PARAM_NAMES = ['matrix_sep', 'metadata_sep', 'pca_type', 'log_transform', 'remove_zero_var', 'threads', 'quiet']
+    cmd = ' '.join(['docker run --rm', mount_str, ' ghcr.io/reproduciblebioinformatics/docker4seq-pca-v2:latest bash /home/start.sh <outdir> <matrix_path> <matrix_sep> <metadata> <metadata_sep> <pca_type> <log_transform> <remove_zero_var> <blind> <threads> <quiet>'])
+    PARAM_NAMES = ['matrix_sep', 'metadata_sep', 'pca_type', 'log_transform', 'remove_zero_var', 'blind', 'threads', 'quiet']
     def replace_placeholder(match):
         key = match.group(1)
         val = str(docker_vals.get(key, match.group(0)))
