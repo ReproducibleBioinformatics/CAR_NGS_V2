@@ -93,14 +93,6 @@ validate_metadata <- function() {
           paste(duplicated_pairs_text, collapse = ", ")
       ))
   }
-  # ------- Specific validation for Batch: allows text values, as well as NA, N/A (case-insensitive) ------- #
-  batch_vals <- as.character(df[["Batch"]])
-  batch_empty_mask <- is.na(batch_vals) | trimws(batch_vals) == ""
-  batch_na_pattern_mask <- grepl("^(?i)(na|n/a)$", trimws(batch_vals))
-  invalid_batch_rows <- which(batch_empty_mask & !batch_na_pattern_mask)
-  if (length(invalid_batch_rows) > 0) {
-    bad_rows <- invalid_batch_rows + 1
-    exit_with_error(sprintf("Column 'Batch' contains invalid/empty values at row(s): %s.", paste(bad_rows, collapse = ", ")))}
   # ------- 7. Check sequencing mode parameter (se / pe), when provided ------- #
   if (!is.null(seq_type)) {
     sample_counts <- table(df[["SampleNumber"]])
