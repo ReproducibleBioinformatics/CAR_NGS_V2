@@ -138,10 +138,8 @@ strip_fastq_ext() {
 }
 collect_outputs() {
     local prefix="$1"
-    mv "$results/${prefix}.genes.results" "$results/${prefix}.genes.results" 2>/dev/null
-    mv "$results/${prefix}.isoforms.results" "$results/${prefix}.isoforms.results" 2>/dev/null
     local star_log
-    star_log=$(find "$results" -name "${prefix}*Log.final.out" -print -quit)
+    star_log=$(find "$results" -maxdepth 1 -name "${prefix}Log.final.out" -print -quit)
     if [ -n "$star_log" ]; then
         mv "$star_log" "$results/${prefix}.Log.final.out"
     else
@@ -149,12 +147,23 @@ collect_outputs() {
     fi
     if [ "$save_bam" == "true" ]; then
         local genome_bam transcript_bam
-        genome_bam=$(find "$results" -name "${prefix}.genome.bam" -print -quit)
-        transcript_bam=$(find "$results" -name "${prefix}.transcript.bam" -print -quit)
+        genome_bam=$(find "$results" -maxdepth 1 -name "${prefix}.genome.bam" -print -quit)
+        transcript_bam=$(find "$results" -maxdepth 1 -name "${prefix}.transcript.bam" -print -quit)
         [ -n "$genome_bam" ] && cp "$genome_bam" "$results/${prefix}.Aligned.out.bam" 2>/dev/null
         [ -n "$transcript_bam" ] && cp "$transcript_bam" "$results/${prefix}.Aligned.toTranscriptome.out.bam" 2>/dev/null
     fi
-    find "$results" -maxdepth 1 -name "${prefix}*" -exec rm -rf {} + 2>/dev/null
+    # ------- Explicit cleanup of known RSEM/STAR intermediate files ------- #
+    rm -f  "$results/${prefix}.transcript.bam"
+    rm -f  "$results/${prefix}.genome.bam"
+    rm -rf "$results/${prefix}.stat"
+    rm -rf "$results/${prefix}.temp"
+    rm -f  "$results/${prefix}Log.out"
+    rm -f  "$results/${prefix}Log.progress.out"
+    rm -f  "$results/${prefix}SJ.out.tab"
+    rm -rf "$results/${prefix}_STARgenome"
+    rm -rf "$results/${prefix}_STARpass1"
+    rm -f  "$results/${prefix}Aligned.out.sam"
+    rm -f  "$results/${prefix}Aligned.out.bam"
 }
 # ------- Sort Metadata Keys by SampleNumber ------- #
 sorted_keys=()
