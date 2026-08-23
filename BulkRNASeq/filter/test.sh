@@ -4,7 +4,7 @@ NC='\033[0m'; CYAN='\033[0;36m'; YELLOW='\033[1;33m'; ORANGE='\033[0;33m'; GREEN
 log_test() { [ "$QUIET" == "true" ] && return; echo -e "${PINK}[$(date '+%Y-%m-%d %H:%M:%S')] [${SCRIPT_NAME} PROCESS] ${1}${NC}"; }
 workdir="workdir"
 results="results/"
-log2fc="1.0"
+log2fc=0.585
 padj="0.05"
 threads=8
 quiet="false"
