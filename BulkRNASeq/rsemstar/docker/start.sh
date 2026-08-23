@@ -213,6 +213,8 @@ while [ $i -lt $total_samples ]; do
         out_prefix="${prefix1}${clean_label}"
         local_gz_opt=""
         if [[ "$sname1" =~ \.gz$ ]]; then local_gz_opt="--star-gzipped-read-file"; fi
+        rsem_quiet_opt=""
+        if [ "$QUIET" == "true" ]; then rsem_quiet_opt="-q"; fi
         if "/usr/local/bin/RSEM-1.3.3/rsem-calculate-expression" \
             --output-genome-bam \
             --keep-intermediate-files \
@@ -220,6 +222,7 @@ while [ $i -lt $total_samples ]; do
             --strandedness "$strandness" \
             --star \
             $local_gz_opt \
+            $rsem_quiet_opt \
             --star-path "/usr/local/bin/" \
             "$target1" \
             "$genome_dir/genome" \
@@ -263,6 +266,7 @@ while [ $i -lt $total_samples ]; do
             --paired-end \
             --star \
             $local_gz_opt \
+            $rsem_quiet_opt \
             --star-path "/usr/local/bin/" \
             "$target1" "$target2" \
             "$genome_dir/genome" \
