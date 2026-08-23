@@ -6,7 +6,7 @@ name=rsemstar
 command=docker run --rm
 script= bash /home/start.sh
 image= ghcr.io/reproduciblebioinformatics/docker4seq-rsemstar-v2:latest
-usage= <workdir> <inputDir> <genomeDir> <outDir> <metadata> <metadata_sep> <strandness> <save_bam> <seq_type> <threads> <quiet> 
+usage= <inputDir> <genomeDir> <outDir> <metadata> <metadata_sep> <strandness> <save_bam> <seq_type> <threads> <quiet> 
 
 [directory]
 name=workDir

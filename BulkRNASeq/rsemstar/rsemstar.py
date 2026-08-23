@@ -121,9 +121,9 @@ def main():
     docker_vals['quiet'] = args['quiet']
 
     # --- Assemble docker command ---
-    cmd = ' ghcr.io/reproduciblebioinformatics/docker4seq-rsemstar-v2:latest bash /home/start.sh <workdir> <inputdir> <genomedir> <outdir> <metadata> <metadata_sep> <strandness> <save_bam> <seq_type> <threads> <quiet>'
+    cmd = ' ghcr.io/reproduciblebioinformatics/docker4seq-rsemstar-v2:latest bash /home/start.sh <inputdir> <genomedir> <outdir> <metadata> <metadata_sep> <strandness> <save_bam> <seq_type> <threads> <quiet>'
     mount_str = ' '.join(mounts)
-    cmd = ' '.join(['docker run --rm', mount_str, ' ghcr.io/reproduciblebioinformatics/docker4seq-rsemstar-v2:latest bash /home/start.sh <workdir> <inputdir> <genomedir> <outdir> <metadata> <metadata_sep> <strandness> <save_bam> <seq_type> <threads> <quiet>'])
+    cmd = ' '.join(['docker run --rm', mount_str, ' ghcr.io/reproduciblebioinformatics/docker4seq-rsemstar-v2:latest bash /home/start.sh <inputdir> <genomedir> <outdir> <metadata> <metadata_sep> <strandness> <save_bam> <seq_type> <threads> <quiet>'])
     PARAM_NAMES = ['metadata_sep', 'strandness', 'save_bam', 'seq_type', 'threads', 'quiet']
     def replace_placeholder(match):
         key = match.group(1)
