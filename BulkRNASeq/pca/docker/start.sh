@@ -40,20 +40,11 @@ show_usage() {
 }
 parse_separator_inplace() {
     local -n sep_ref="${1}"
-    local sep_clean=$(echo "$sep_ref" | xargs | tr '[:upper:]' '[:lower:]')
-    case "$sep_clean" in
-        "tab"|"\t"|$'\t')
-            sep_ref=$'\t'
-            return 0
-            ;;
-        ","|";")
-            sep_ref="$sep_clean"
-            return 0
-            ;;
-        *)
-            return 1
-            ;;
-    esac
+    local sep_clean
+    sep_clean=$(echo "$sep_ref" | xargs | tr '[:upper:]' '[:lower:]')
+    if [ "$sep_clean" = "tab" ] || [ "$sep_clean" = '\t' ] || [ "$sep_clean" = $'\t' ]; then sep_ref='\t';  return 0;
+    elif [ "$sep_clean" = "," ] || [ "$sep_clean" = ";" ]; then sep_ref="$sep_clean"; return 0;
+    else return 1; fi
 }
 # ------- Argument Checking All arguments are mandatory ------- #
 if [ "$#" -ne 11 ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then show_usage; exit 1; fi
