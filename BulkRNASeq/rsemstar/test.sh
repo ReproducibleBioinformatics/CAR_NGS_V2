@@ -35,5 +35,6 @@ get_latest_output_dir() {
 }
 input_dir=$(get_latest_output_dir "../skewer/results")
 genome_dir=$(get_latest_output_dir "../rsemstarindex/results")
+metadata="${input_dir}/sampleMetaData_skewer.csv"
 log_test "Executing rsemstar pipeline via Python wrapper..."
 python3 rsemstar.py "$workdir" "$input_dir" "$genome_dir" "$results" "$metadata" "$metadata_sep" "$strandness" "$save_bam" "$seq_type" "$threads" "$quiet"
