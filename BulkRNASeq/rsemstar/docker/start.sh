@@ -139,7 +139,7 @@ strip_fastq_ext() {
 collect_outputs() {
     local prefix="$1"
     local star_log
-    star_log=$(find "$results" -maxdepth 1 -name "${prefix}Log.final.out" -print -quit)
+    star_log=$(find "$results" -maxdepth 2 -name "${prefix}Log.final.out" -print -quit)
     if [ -n "$star_log" ]; then
         mv "$star_log" "$results/${prefix}.Log.final.out"
     else
