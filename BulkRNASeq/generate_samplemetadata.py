@@ -73,7 +73,11 @@ def generate_sample_sheet():
     log_step(f"Processing {len(fastq_files)} FASTQ files from: {input_dir}")
 
     for root, filename in fastq_files:
-        sample_folder = "" if root == input_dir else os.path.basename(root)
+        abs_root = os.path.abspath(root)
+        rel_path = os.path.relpath(abs_root, input_dir)
+        # ------- Force POSIX slashes for Docker/Linux compatibility ------- #
+        sample_folder = "" if rel_path == "." else rel_path.replace(os.sep, '/')
+        
         match = pattern.match(filename)
         if match:
             covariate, local_num, _ = match.groups()
