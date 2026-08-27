@@ -43,6 +43,19 @@ Depending on the step, the metadata file is expected to carry (a subset of) the 
 
 As the pipeline progresses, steps that transform the input files (e.g. `skewer` trimming reads, `rsem` producing quantification results) write an **updated metadata file** in their `results` folder, with `SampleName`/`SampleFolder` pointing to the newly generated outputs. This keeps every downstream step decoupled from the previous step's internal file layout — each step only needs to be pointed at the correct metadata file to know exactly which files to consume and where to find them.
 
+---
+
+## Repository Structure
+
+Each step of the pipeline lives in its own dedicated folder (e.g. `qc_report/`, `skewer/`, `rsemstarindex/`, `rsem/`, `annotation/`, `pca/`, `deseq2/`, `filter/`). Every step folder contains two functionally equivalent implementations, both generated via the **baryonlanguage** system ([Baryonlang](https://github.com/Fairflow-BioinformaticsFramework/Baryonlang)):
+
+* a **Python script** (e.g. `qc_report.py`) exposing the step's logic as a command-line tool, internally invoked by that step's `test.sh`;
+* an **R function** (e.g. `qc_report.R`) exposing the same logic as a callable R function, usable directly within an R session (e.g. via `source("qc_report.R")` followed by a direct call).
+
+Since both artifacts are generated from the same underlying step definition, they accept the same parameters and produce the same results — pick whichever fits your workflow (shell/CLI vs. R environment).
+
+---
+
 ## Testing the Pipeline
 
 Every step's folder contains a **test.sh** script with parameters already configured to run that step against the sample data included in the repository.
