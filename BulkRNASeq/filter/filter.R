@@ -1,0 +1,146 @@
+# ANSI color codes
+RED    <- '\033[91m'
+WHITE  <- '\033[97m'
+YELLOW <- '\033[93m'
+ORANGE <- '\033[38;5;208m'
+GREEN  <- '\033[92m'
+RESET  <- '\033[0m'
+
+cat_col <- function(..., color = WHITE) {
+  cat(color, ..., RESET, '\n', sep = '')
+}
+
+filter <- function(workdir = NULL, outdir = NULL, de_full = NULL, raw_counts = NULL, norm_counts = NULL, log2fc = NULL, padj = NULL, threads = NULL, quiet = NULL) {
+
+  if (any(sapply(list(workdir, outdir, de_full, raw_counts, norm_counts, log2fc, padj, threads, quiet), is.null))) {
+    cat(WHITE, 'Usage: filter(<workdir> <outdir> <de_full> <raw_counts> <norm_counts> <log2fc> <padj> <threads> <quiet>)', RESET, '\n\n', sep = '')
+    cat(YELLOW, "Description: A utility script that filters DESeq2 results (DE_FULL.txt) based on user-defined Log2 Fold-Change (LFC) and False Discovery Rate (FDR/padj) thresholds. It exports the statistically significant differential expression metrics (DE_Filtered.txt) and subsets both the raw (DE_counts.txt) and log2-normalized (DE_normalizedCounts.txt) expression matrices to retain only the features that passed the selection criteria", RESET, "\n\n", sep = "")
+    cat_col('Arguments:', color = WHITE)
+    cat('\033[93mworkdir         [io]  indicating the working folder', RESET, '\n', sep = '')
+    cat('\033[93moutdir          [out] indicating the folder where results will be written', RESET, '\n', sep = '')
+    cat('\033[38;5;208mde_full         [cp]  The complete, unfiltered output from DESeq2 containing all tested genes with their respective statistical metrics, including base mean, log2 fold-changes (LFC), p-values, and adjusted p-values (FDR/padj)', RESET, '\n', sep = '')
+    cat('\033[38;5;208mraw_counts      [cp]  A filtered subset of the primary raw expression matrix, containing only the non-normalized integer read counts of genes that passed the user-defined statistical thresholds across all samples.', RESET, '\n', sep = '')
+    cat('\033[38;5;208mnorm_counts     [cp]  A filtered matrix containing library-size corrected and $\log_2$-transformed expression levels for statistically significant genes, ideal for downstream clustering, heatmaps, and PCA.', RESET, '\n', sep = '')
+    cat('\033[92mlog2fc                Log2 Fold Change absolute threshold for filtering differentially expressed genes (e.g., 1.0 for a 2-fold change)', RESET, '\n', sep = '')
+    cat('\033[92mpadj                  The actual statistic calculated for each gene, which has been corrected for multiple testing (typically via the Benjamini-Hochberg procedure) to ensure that filtering by this value maintains the global FDR at the desired level.', RESET, '\n', sep = '')
+    cat('\033[92mthreads               a number indicating the number of cores to be used from the application', RESET, '\n', sep = '')
+    cat('\033[92mquiet                 Set to \\"true\\" to suppress tool processing messages, set to \\"false\\" to keep verbose logging enabled.', RESET, '\n', sep = '')
+    stop('Missing required arguments')
+  }
+
+  args <- list()
+  args$workdir <- workdir
+  args$outdir <- outdir
+  args$de_full <- de_full
+  args$raw_counts <- raw_counts
+  args$norm_counts <- norm_counts
+  args$log2fc <- log2fc
+  args$padj <- padj
+  args$threads <- threads
+  args$quiet <- quiet
+
+  # --- Input validation ---
+  errors <- character(0)
+
+  if (!dir.exists(args$workdir)) {
+    errors <- c(errors, paste0('Directory not found: workdir = ', args$workdir))
+  }
+  if (!dir.exists(args$outdir)) {
+    errors <- c(errors, paste0('Directory not found: outdir = ', args$outdir))
+  }
+  if (!file.exists(args$de_full)) {
+    errors <- c(errors, paste0('File not found: de_full = ', args$de_full))
+  }
+  if (!file.exists(args$raw_counts)) {
+    errors <- c(errors, paste0('File not found: raw_counts = ', args$raw_counts))
+  }
+  if (!file.exists(args$norm_counts)) {
+    errors <- c(errors, paste0('File not found: norm_counts = ', args$norm_counts))
+  }
+  if (!args$quiet %in% c("false", "true")) {
+    errors <- c(errors, paste0('Invalid value for quiet: ', args$quiet, '. Allowed: false, true'))
+  }
+
+  if (length(errors) > 0) {
+    for (e in errors) cat(RED, 'ERROR: ', RESET, WHITE, e, RESET, '\n', sep = '')
+    stop('Input validation failed')
+  }
+
+  # --- Scratch directory setup ---
+  n <- 1
+  repeat {
+    if (dir.exists(file.path(normalizePath(args$workdir), paste0('scratch', n))) || dir.exists(file.path(normalizePath(args$outdir), paste0('output', n)))) {
+      n <- n + 1
+    } else {
+      break
+    }
+  }
+
+  scratch_path <- file.path(normalizePath(args$workdir), paste0('scratch', n))
+  dir.create(scratch_path, recursive = TRUE, showWarnings = FALSE)
+  scratch_out_path <- file.path(normalizePath(args$outdir), paste0('output', n))
+  dir.create(scratch_out_path, recursive = TRUE, showWarnings = FALSE)
+
+  # --- Build docker volume mounts ---
+  mounts      <- character(0)
+  docker_vals <- list()
+  service_idx <- 1
+
+  mounts <- c(mounts, paste0('-v "', scratch_path, ':/workDir"'))
+  docker_vals$workdir <- '/workDir'
+
+  mounts <- c(mounts, paste0('-v "', scratch_out_path, ':/results"'))
+  docker_vals$outdir <- '/results'
+
+  # --- Bind files and service volumes ---
+  mounted_folders <- list()
+
+  src_de_full <- normalizePath(args$de_full)
+  file.copy(src_de_full, scratch_path)
+  docker_vals$de_full <- paste0('/workDir/', basename(src_de_full))
+
+  src_raw_counts <- normalizePath(args$raw_counts)
+  file.copy(src_raw_counts, scratch_path)
+  docker_vals$raw_counts <- paste0('/workDir/', basename(src_raw_counts))
+
+  src_norm_counts <- normalizePath(args$norm_counts)
+  file.copy(src_norm_counts, scratch_path)
+  docker_vals$norm_counts <- paste0('/workDir/', basename(src_norm_counts))
+
+  docker_vals$log2fc <- args$log2fc
+  docker_vals$padj <- args$padj
+  docker_vals$threads <- args$threads
+  docker_vals$quiet <- args$quiet
+
+  # --- Assemble docker command ---
+  mount_str <- paste(mounts, collapse = ' ')
+  cmd <- paste('docker run --rm', mount_str, 'ghcr.io/reproduciblebioinformatics/docker4seq-filter-v2:latest bash /home/start.sh <de_full> <raw_counts> <norm_counts> <outdir> <log2fc> <padj> <threads> <quiet>')
+  placeholders <- regmatches(cmd, gregexpr('<[^>]+>', cmd))[[1]]
+  for (ph in placeholders) {
+    key <- gsub('<|>', '', ph)
+    val <- docker_vals[[key]]
+    if (!is.null(val)) {
+      if (grepl('[;&|()<>$\\`"\'\\s]', val, perl = TRUE)) val <- paste0('"', gsub('"', '\\"', val, fixed = TRUE), '"')
+      cmd <- gsub(ph, val, cmd, fixed = TRUE)
+    }
+  }
+  cat('\n', YELLOW, 'Running:\n', RESET, WHITE, cmd, RESET, '\n\n', sep = '')
+  log_path <- file.path(scratch_path, 'output_log.txt')
+  cat(YELLOW, 'Log: ', RESET, WHITE, log_path, RESET, '\n\n', sep = '')
+
+  con <- file(log_path, open = 'w')
+  p   <- pipe(paste(cmd, '2>&1'), open = 'r')
+  while (length(line <- readLines(p, n = 1, warn = FALSE)) > 0) {
+    cat(line, '\n', sep = '')
+    writeLines(line, con)
+  }
+  ret <- close(p)
+  close(con)
+
+  if (ret == 0) {
+    cat('\n', GREEN, 'Done. Log saved to: ', log_path, RESET, '\n', sep = '')
+  } else {
+    cat('\n', RED, 'Docker exited with code ', ret, '. See log: ', log_path, RESET, '\n', sep = '')
+  }
+  return(invisible(ret))
+}
