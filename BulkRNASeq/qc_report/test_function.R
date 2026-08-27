@@ -1,16 +1,16 @@
 #!/usr/bin/env Rscript
 # test.R - R equivalent of test.sh
-# Runs the QC Report pipeline via the R implementation (qc_report.R)
-# instead of the Python wrapper (qc_report.py).
+# Runs the QC Report pipeline by sourcing qc_report.R and calling the
+# qc_report() function directly, instead of invoking qc_report.py via python3.
 
-SCRIPT_NAME <- "test-qcreport"
-workdir     <- "workdir"
-input_dir   <- "../testdata/raw_data/"
-results     <- "results/"
-metadata    <- "../testdata/raw_data/sampleMetaData.csv"
+SCRIPT_NAME  <- "test-qcreport"
+workdir      <- "workdir"
+input_dir    <- "../testdata/raw_data/"
+results      <- "results/"
+metadata     <- "../testdata/raw_data/sampleMetaData.csv"
 metadata_sep <- ","
-threads     <- 10
-quiet       <- "false"
+threads      <- 10
+quiet        <- "false"
 
 # ANSI color codes (same palette as test.sh)
 NC     <- "\033[0m"
@@ -36,16 +36,25 @@ dir.create(results, recursive = TRUE, showWarnings = FALSE)
 
 log_test("Executing QC Report pipeline via R function...")
 
-# Build the argument vector for qc_report.R (positional args, same order
-# expected by commandArgs(trailingOnly = TRUE) in qc_report.R)
-qc_args <- c(workdir, input_dir, results, metadata, metadata_sep, as.character(threads), quiet)
+# Load the qc_report() function definition into this session.
+# Adjust the path below if qc_report.R lives elsewhere relative to test.R.
+source("qc_report.R")
 
-# Launch qc_report.R with Rscript, forwarding stdout/stderr live
-status <- system2("Rscript", args = c(shQuote("qc_report.R"), shQuote(qc_args)),
-                   stdout = "", stderr = "")
+# Call the function directly (no subprocess/system2 involved this time)
+ret <- qc_report(
+  workdir      = workdir,
+  inputdir     = input_dir,
+  outdir       = results,
+  metadata     = metadata,
+  metadata_sep = metadata_sep,
+  threads      = threads,
+  quiet        = quiet
+)
 
-if (status != 0) {
-  log_test(paste0(RED, "qc_report.R exited with status ", status, NC))
+if (is.null(ret)) ret <- 0
+
+if (ret != 0) {
+  log_test(paste0(RED, "qc_report() exited with status ", ret, NC))
 }
 
-quit(status = status)
+quit(status = ret)
