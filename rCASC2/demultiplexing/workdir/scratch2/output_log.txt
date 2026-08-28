@@ -1,0 +1,11 @@
+[0;36m====================================================================================================[0m
+[0;36m[2026-08-28 14:35:56] [docker4seq-demultiplexing-v1 INFO]    Pipeline Execution Context:[0m
+  [0;36mDocker Container:[0m [0;32mdocker4seq-demultiplexing-v1[0m
+  [0;36mInput Dir       :[0m [1;33m/data_run[0m
+  [0;36mOutput Dir      :[0m [1;33m/results[0m
+  [0;36mSamplesheet     :[0m [1;33m/workDir/SampleSheet.csv[0m
+  [0;36mThreads         :[0m [1;33m8[0m
+  [0;36mQuiet Mode      :[0m [1;33mfalse[0m
+[0;36m====================================================================================================[0m
+[0;36m[2026-08-28 14:35:56] [docker4seq-demultiplexing-v1 INFO]    Thread allocation -> -r 1  -p 6  -w 1[0m
+[0;31m[2026-08-28 14:35:56] [docker4seq-demultiplexing-v1 ERROR]   '/data_run' does not look like an Illumina run folder (RunInfo.xml not found).[0m

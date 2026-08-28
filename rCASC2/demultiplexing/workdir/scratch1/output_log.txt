@@ -1,0 +1,6 @@
+
+It looks like you have tried to invoke the docker CLI from the docker-desktop WSL2 distribution. This is not supported.
+
+Please invoke the docker CLI from the Windows Command Prompt, PowerShell, or other compatible terminals.
+
+If you wish to interact with Docker Desktop from a third-party WSL2 distribution, such as Ubuntu, please enable the Docker Desktop WSL2 integration for it. See: https://docs.docker.com/desktop/wsl/#enabling-docker-support-in-wsl-2-distros

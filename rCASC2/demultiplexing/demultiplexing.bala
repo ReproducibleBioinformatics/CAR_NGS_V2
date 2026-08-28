@@ -1,0 +1,43 @@
+[research]
+description=runs Illumina bcl2fastq2 to demultiplex a sequencing run: it converts raw BCL base-call files from an Illumina run folder into per-sample, gzip-compressed FASTQ files according to the sample indexes listed in a SampleSheet.csv, and writes the resulting FASTQ files together with the bcl2fastq execution log to the specified output directory.
+name=demultiplexing
+#
+[run]
+command=docker run --rm
+script= bash /home/start.sh
+#image= ghcr.io/reproduciblebioinformatics/rCASC2-demultiplexing-v2:latest
+image= pippo
+usage= <inputDir> <outDir> <samplesheet_file> <threads> <quiet>
+#
+[directory]
+name=workDir
+description=indicating the working folder
+flag=io
+mount=/workDir
+#
+[directory]
+name=inputDir
+description=Illumina run folder (must contain RunInfo.xml)
+flag=in
+mount=/data_run
+#
+[directory]
+name=outDir
+description=indicating the folder where results will be written
+mount=/results
+flag=out
+
+[file]
+name = samplesheet_file
+description = Path to the SampleSheet.csv file
+flag=cp
+
+[parameter]
+name = threads
+value = 10
+description = a number indicating the number of cores to be used from the application
+
+[parameter]
+name = quiet
+values = false,true
+description = Set to "true" to suppress tool processing messages, set to "false" to keep verbose logging enabled.

@@ -1,0 +1,12 @@
+[0;36m====================================================================================================[0m
+[0;36m[2026-08-28 14:37:17] [docker4seq-demultiplexing-v1 INFO]    Pipeline Execution Context:[0m
+  [0;36mDocker Container:[0m [0;32mdocker4seq-demultiplexing-v1[0m
+  [0;36mInput Dir       :[0m [1;33m/data_run[0m
+  [0;36mOutput Dir      :[0m [1;33m/results[0m
+  [0;36mSamplesheet     :[0m [1;33m/workDir/SampleSheet.csv[0m
+  [0;36mThreads         :[0m [1;33m8[0m
+  [0;36mQuiet Mode      :[0m [1;33mfalse[0m
+[0;36m====================================================================================================[0m
+[0;36m[2026-08-28 14:37:17] [docker4seq-demultiplexing-v1 INFO]    Thread allocation -> -r 1  -p 6  -w 1[0m
+[1;33m[2026-08-28 14:37:17] [docker4seq-demultiplexing-v1 PROCESS] Running bcl2fastq...[0m
+[0;32m[2026-08-28 14:38:28] [docker4seq-demultiplexing-v1 SUCCESS] bcl2fastq completed successfully. Log saved to '/results/bcl2fastq.log'.[0m

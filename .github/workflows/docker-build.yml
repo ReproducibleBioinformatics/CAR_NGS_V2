@@ -28,21 +28,21 @@ jobs:
         with:
           filters: |
             qc_report:
-              - 'BulkRNASeq/qc_report/**'
+              - 'BulkRNASeq/qc_report/docker/**'
             skewer:
-              - 'BulkRNASeq/skewer/**'
+              - 'BulkRNASeq/skewer/docker/**'
             rsemstarindex:
-              - 'BulkRNASeq/rsemstarindex/**'
+              - 'BulkRNASeq/rsemstarindex/docker/**'
             rsemstar:
-              - 'BulkRNASeq/rsemstar/**'
+              - 'BulkRNASeq/rsemstar/docker/**'
             annotation:
-              - 'BulkRNASeq/annotation/**'
+              - 'BulkRNASeq/annotation/docker/**'
             pca:
-              - 'BulkRNASeq/pca/**'
+              - 'BulkRNASeq/pca/docker/**'
             deseq2:
-              - 'BulkRNASeq/deseq2/**'
+              - 'BulkRNASeq/deseq2/docker/**'
             filter:
-              - 'BulkRNASeq/filter/**'
+              - 'BulkRNASeq/filter/docker/**'
 
   build-and-push:
     needs: detect-changes

@@ -1,0 +1,33 @@
+#!/bin/bash
+SCRIPT_NAME="test-demultiplexing"
+NC='\033[0m'; CYAN='\033[0;36m'; YELLOW='\033[1;33m'; ORANGE='\033[0;33m'; GREEN='\033[0;32m'; RED='\033[0;31m'; PINK='\033[1;35m'
+log_test() { [ "$QUIET" == "true" ] && return; echo -e "${PINK}[$(date '+%Y-%m-%d %H:%M:%S')] [${SCRIPT_NAME} PROCESS] ${1}${NC}"; }
+QUIET="$quiet"
+get_latest_output_dir() {
+    local base_dir="${1}"
+    local max_num=-1
+    local latest_dir=""
+    if [ ! -d "$base_dir" ]; then echo ""; return; fi
+    for dir in "${base_dir}"/output*; do
+        if [ -d "$dir" ]; then
+            folder_name=$(basename "$dir")
+            num="${folder_name#output}"
+            if [[ "$num" =~ ^[0-9]+$ ]] && [ "$num" -gt "$max_num" ]; then
+                max_num=$num
+                latest_dir="$dir"
+            fi
+        fi
+    done
+    echo "$latest_dir"
+}
+workdir="workdir"
+results="results/"
+inputdir="../testdata/cbl/220422_M11111_0222_000000000-K9H97"
+samplesheet_file="../testdata/cbl/SampleSheet.csv"
+threads=8
+quiet="false"
+mkdir -p "$workdir" "$results"
+input_dir=$(get_latest_output_dir "../rsemstar/results")
+metadata="${input_dir}/sampleMetaData_rsemstar.csv"
+log_test "Executing demultiplexing pipeline via Python wrapper..."
+python3 demultiplexing.py "$workdir" "$inputdir" "$results" "$samplesheet_file" "$threads" "$quiet"
