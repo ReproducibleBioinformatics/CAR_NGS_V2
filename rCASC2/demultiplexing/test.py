@@ -9,7 +9,7 @@ SCRIPT_NAME = "test-demultiplexing"
 PINK = "\033[1;35m"
 NC = "\033[0m"
 
-quiet = "false"
+quiet = "true"
 QUIET = quiet.lower() == "true"
 
 def log_test(message):
@@ -44,6 +44,7 @@ results = "results/"
 inputdir = "../testdata/cbl/220422_M11111_0222_000000000-K9H97"
 samplesheet_file = "../testdata/cbl/SampleSheet.csv"
 threads = "8"
+lenient = "true"
 
 # Creazione cartelle di lavoro
 os.makedirs(workdir, exist_ok=True)
@@ -63,6 +64,7 @@ cmd = [
     inputdir,
     results,
     samplesheet_file,
+    lenient,
     threads,
     quiet
 ]

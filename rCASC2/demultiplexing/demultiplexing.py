@@ -13,9 +13,9 @@ def main():
     if os.name == 'nt':
         os.system('color')
 
-    usage_str = ' '.join([f'\033[93m<workdir>{RESET}', f'\033[93m<inputdir>{RESET}', f'\033[93m<outdir>{RESET}', f'\033[38;5;208m<samplesheet_file>{RESET}', f'\033[92m<threads>{RESET}', f'\033[92m<quiet>{RESET}'])
+    usage_str = ' '.join([f'\033[93m<workdir>{RESET}', f'\033[93m<inputdir>{RESET}', f'\033[93m<outdir>{RESET}', f'\033[38;5;208m<samplesheet_file>{RESET}', f'\033[92m<lenient>{RESET}', f'\033[92m<threads>{RESET}', f'\033[92m<quiet>{RESET}'])
 
-    if len(sys.argv) != 7:
+    if len(sys.argv) != 8:
         print(f'{WHITE}Usage: python demultiplexing.py {usage_str}{RESET}\n')
         print(f'{YELLOW}runs Illumina bcl2fastq2 to demultiplex a sequencing run: it converts raw BCL base-call files from an Illumina run folder into per-sample, gzip-compressed FASTQ files according to the sample indexes listed in a SampleSheet.csv, and writes the resulting FASTQ files together with the bcl2fastq execution log to the specified output directory.{RESET}\n')
         print(f'{WHITE}Arguments:{RESET}')
@@ -23,6 +23,7 @@ def main():
         print(f'\033[93minputdir       {RESET} [in]  Illumina run folder (must contain RunInfo.xml)')
         print(f'\033[93moutdir         {RESET} [out] indicating the folder where results will be written')
         print(f'\033[38;5;208msamplesheet_file{RESET} [cp]  Path to the SampleSheet.csv file')
+        print(f'\033[92mlenient        {RESET}       Ignore missing BCL/filter/position/control files: \"true\" or \"false\"')
         print(f'\033[92mthreads        {RESET}       a number indicating the number of cores to be used from the application')
         print(f'\033[92mquiet          {RESET}       Set to \"true\" to suppress tool processing messages, set to \"false\" to keep verbose logging enabled.')
         sys.exit(1)
@@ -33,8 +34,9 @@ def main():
     args['inputdir'] = sys.argv[2]
     args['outdir'] = sys.argv[3]
     args['samplesheet_file'] = sys.argv[4]
-    args['threads'] = sys.argv[5]
-    args['quiet'] = sys.argv[6]
+    args['lenient'] = sys.argv[5]
+    args['threads'] = sys.argv[6]
+    args['quiet'] = sys.argv[7]
 
     # --- Input validation ---
     errors = []
@@ -47,6 +49,8 @@ def main():
         errors.append(f'Directory not found: outdir = {args["outdir"]}"')
     if not os.path.isfile(args['samplesheet_file']):
         errors.append(f'File not found: samplesheet_file = {args["samplesheet_file"]}"')
+    if args['lenient'] not in ['false', 'true']:
+        errors.append(f"""Invalid value for lenient: {args["lenient"]}. Allowed: ['false', 'true']""")
     if args['quiet'] not in ['false', 'true']:
         errors.append(f"""Invalid value for quiet: {args["quiet"]}. Allowed: ['false', 'true']""")
 
@@ -89,14 +93,15 @@ def main():
     shutil.copy(_src_samplesheet_file, scratch_path)
     docker_vals['samplesheet_file'] = f'/workDir/{os.path.basename(_src_samplesheet_file)}'
 
+    docker_vals['lenient'] = args['lenient']
     docker_vals['threads'] = args['threads']
     docker_vals['quiet'] = args['quiet']
 
     # --- Assemble docker command ---
-    cmd = ' pippo bash /home/start.sh <inputdir> <outdir> <samplesheet_file> <threads> <quiet>'
+    cmd = ' pippo bash /home/start.sh <inputdir> <outdir> <samplesheet_file> <lenient> <threads> <quiet>'
     mount_str = ' '.join(mounts)
-    cmd = ' '.join(['docker run --rm', mount_str, ' pippo bash /home/start.sh <inputdir> <outdir> <samplesheet_file> <threads> <quiet>'])
-    PARAM_NAMES = ['threads', 'quiet']
+    cmd = ' '.join(['docker run --rm', mount_str, ' pippo bash /home/start.sh <inputdir> <outdir> <samplesheet_file> <lenient> <threads> <quiet>'])
+    PARAM_NAMES = ['lenient', 'threads', 'quiet']
     def replace_placeholder(match):
         key = match.group(1)
         val = str(docker_vals.get(key, match.group(0)))

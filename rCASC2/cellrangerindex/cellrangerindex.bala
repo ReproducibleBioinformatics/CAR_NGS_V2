@@ -1,0 +1,52 @@
+[research]
+description=runs Illumina bcl2fastq2 to demultiplex a sequencing run: it converts raw BCL base-call files from an Illumina run folder into per-sample, gzip-compressed FASTQ files according to the sample indexes listed in a SampleSheet.csv, and writes the resulting FASTQ files together with the bcl2fastq execution log to the specified output directory.
+name=cellrangerindex
+#
+[run]
+command=docker run --rm
+script= bash /home/start.sh
+#image= ghcr.io/reproduciblebioinformatics/rCASC2-cellrangerindex-v2:latest
+image= pippo
+usage= <outDir> <fastafile> <gtffile> <gene_biotype> <max_memory> <threads> <quiet>
+
+[directory]
+name=workDir
+description=indicating the working folder
+flag=io
+mount=/workDir
+
+[directory]
+name=outDir
+description=indicating the folder where results will be written
+mount=/results
+flag=out
+
+[file]
+name=fastafile
+flag=cp
+description = Contains the raw DNA sequence (chromosomes) of the reference genome, used by STAR as the blueprint for alignment
+
+[file]
+name=gtffile
+flag=cp
+description = Contains the gene annotations (coordinates of exons, introns, and transcripts), used by RSEM to quantify gene expression.
+
+[parameter]
+name = gene_biotype
+values = "all","protein_coding","unitary_pseudogene","unprocessed_pseudogene","processed_pseudogene","transcribed_unprocessed_pseudogene","processed_transcript","antisense","transcribed_unitary_pseudogene","polymorphic_pseudogene","lincRNA","sense_intronic","transcribed_processed_pseudogene","sense_overlapping","IG_V_pseudogene","pseudogene","TR_V_gene","3prime_overlapping_ncRNA","IG_V_gene","bidirectional_promoter_lncRNA","snRNA","miRNA","misc_RNA","snoRNA","rRNA","IG_C_gene","IG_J_gene","TR_J_gene","TR_C_gene","TR_V_pseudogene","TR_J_pseudogene","IG_D_gene","ribozyme","IG_C_pseudogene","TR_D_gene","TEC","IG_J_pseudogene","scRNA","scaRNA","vaultRNA","sRNA","macro_lncRNA","non_coding","IG_pseudogene"
+description = gene biotype 
+
+[parameter]
+name = max_memory
+value = 16
+description = Maximum amount of memory (RAM) that Cell Ranger is allowed to use.
+
+[parameter]
+name = threads
+value = 10
+description = a number indicating the number of cores to be used from the application
+
+[parameter]
+name = quiet
+values = false,true
+description = Set to "true" to suppress tool processing messages, set to "false" to keep verbose logging enabled.

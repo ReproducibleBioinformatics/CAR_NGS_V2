@@ -18,18 +18,20 @@ show_usage() {
     echo -e "  ${CYAN}input_dir${NC}         Illumina run folder (must contain RunInfo.xml)"
     echo -e "  ${CYAN}out_dir${NC}           Output directory for the demultiplexed FASTQ files"
     echo -e "  ${CYAN}samplesheet_file${NC}  Path to the SampleSheet.csv file"
+    echo -e "  ${CYAN}lenient${NC}           Ignore missing BCL/filter/position/control files: 'true' or 'false'"
     echo -e "  ${CYAN}threads${NC}           Number of parallel threads (positive integer)"
     echo -e "  ${CYAN}quiet${NC}             Suppress processing log messages: 'true' or 'false'"
     log_sep "-" "$YELLOW"
 }
 # ------- Argument Checking All arguments are mandatory ------- #
-if [ "$#" -ne 5 ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then show_usage; exit 1; fi
+if [ "$#" -ne 6 ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then show_usage; exit 1; fi
 # ------- Positional Arguments Assignment ------- #
 input_dir="${1}"
 out_dir="${2}"
 samplesheet_file="${3}"
-threads="${4}"
-quiet="${5}"
+lenient="${4}"
+threads="${5}"
+quiet="${6}"
 # ------- Validate Quiet Parameter ------- #
 if [ "$quiet" != "true" ] && [ "$quiet" != "false" ]; then log_warn "Invalid quiet parameter '$quiet', defaulting to 'false'"; quiet="false"; fi; QUIET="$quiet"
 # ------- Print Pipeline Execution Context ------- #
@@ -40,6 +42,7 @@ if [ "$QUIET" == "false" ]; then
     echo -e "  ${CYAN}Input Dir       :${NC} ${YELLOW}${input_dir}${NC}"
     echo -e "  ${CYAN}Output Dir      :${NC} ${YELLOW}${out_dir}${NC}"
     echo -e "  ${CYAN}Samplesheet     :${NC} ${YELLOW}${samplesheet_file}${NC}"
+    echo -e "  ${CYAN}lenient         :${NC} ${YELLOW}${lenient}${NC}"
     echo -e "  ${CYAN}Threads         :${NC} ${YELLOW}${threads}${NC}"
     echo -e "  ${CYAN}Quiet Mode      :${NC} ${YELLOW}${quiet}${NC}"
     log_sep "=" "$CYAN"
@@ -70,39 +73,34 @@ if [ ! -d "$input_dir" ]; then log_error "Input directory '$input_dir' does not 
 if [ ! -f "${input_dir}/RunInfo.xml" ]; then log_error "'${input_dir}' does not look like an Illumina run folder (RunInfo.xml not found)."; exit 1; fi
 # ------- Check Samplesheet File ------- #
 if [ ! -f "$samplesheet_file" ]; then log_error "Samplesheet file '$samplesheet_file' does not exist."; exit 1; fi
-# ------- Running bcl2fastq ------- #
-log_step "Running bcl2fastq..."
-if [ "$QUIET" == "false" ]; then
-    bcl2fastq \
-        --runfolder-dir "$input_dir" \
-        --output-dir "$out_dir" \
-        --sample-sheet "$samplesheet_file" \
-        --no-lane-splitting \
-        --ignore-missing-bcls \
-        --ignore-missing-filter \
-        --ignore-missing-positions \
-        --ignore-missing-controls \
-        -r "$r_threads" -p "$p_threads" -w "$w_threads" \
-        2>&1 | tee "${out_dir}/bcl2fastq.log"
-    bcl2fastq_status=${PIPESTATUS[0]}
-else
-    bcl2fastq \
-        --runfolder-dir "$input_dir" \
-        --output-dir "$out_dir" \
-        --sample-sheet "$samplesheet_file" \
-        --no-lane-splitting \
-        --ignore-missing-bcls \
-        --ignore-missing-filter \
-        --ignore-missing-positions \
-        --ignore-missing-controls \
-        -r "$r_threads" -p "$p_threads" -w "$w_threads" \
-        > "${out_dir}/bcl2fastq.log" 2>&1
-    bcl2fastq_status=$?
+# ------- Validate Lenient Parameter ------- #
+if [ "$lenient" != "true" ] && [ "$lenient" != "false" ]; then log_warn "Invalid lenient parameter '$lenient', defaulting to 'false'"; lenient="false"; fi
+# ------- Build --ignore-missing-* options based on 'lenient' ------- #
+lenient_opts=()
+if [ "$lenient" == "true" ]; then
+    lenient_opts=(--ignore-missing-bcls --ignore-missing-filter --ignore-missing-positions --ignore-missing-controls)
 fi
+# ------- Set bcl2fastq's own verbosity based on 'quiet' ------- #
+# quiet=true  -> only real errors are reported (ERROR)
+# quiet=false -> normal informational output (INFO), same as bcl2fastq's default
+min_log_level="INFO"
+if [ "$QUIET" == "true" ]; then min_log_level="ERROR"; fi
+
+# ------- Running bcl2fastq (single execution point, no log file) ------- #
+log_step "Running bcl2fastq..."
+bcl2fastq \
+    --runfolder-dir "$input_dir" \
+    --output-dir "$out_dir" \
+    --sample-sheet "$samplesheet_file" \
+    --no-lane-splitting \
+    --min-log-level "$min_log_level" \
+    "${lenient_opts[@]}" \
+    -r "$r_threads" -p "$p_threads" -w "$w_threads"
+bcl2fastq_status=$?
 
 if [ "$bcl2fastq_status" -eq 0 ]; then
-    log_success "bcl2fastq completed successfully. Log saved to '${out_dir}/bcl2fastq.log'."
+    log_success "bcl2fastq completed successfully."
 else
-    log_error "bcl2fastq failed. Check the log at '${out_dir}/bcl2fastq.log' for details."
+    log_error "bcl2fastq failed (exit code ${bcl2fastq_status})."
     exit 2
 fi

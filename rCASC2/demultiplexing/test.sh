@@ -24,10 +24,11 @@ workdir="workdir"
 results="results/"
 inputdir="../testdata/cbl/220422_M11111_0222_000000000-K9H97"
 samplesheet_file="../testdata/cbl/SampleSheet.csv"
+lenient=false
 threads=8
 quiet="false"
 mkdir -p "$workdir" "$results"
 input_dir=$(get_latest_output_dir "../rsemstar/results")
 metadata="${input_dir}/sampleMetaData_rsemstar.csv"
 log_test "Executing demultiplexing pipeline via Python wrapper..."
-python3 demultiplexing.py "$workdir" "$inputdir" "$results" "$samplesheet_file" "$threads" "$quiet"
+python3 demultiplexing.py "$workdir" "$inputdir" "$results" "$samplesheet_file" "$lenient" "$threads" "$quiet"

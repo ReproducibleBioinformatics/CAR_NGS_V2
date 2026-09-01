@@ -7,7 +7,7 @@ command=docker run --rm
 script= bash /home/start.sh
 #image= ghcr.io/reproduciblebioinformatics/rCASC2-demultiplexing-v2:latest
 image= pippo
-usage= <inputDir> <outDir> <samplesheet_file> <threads> <quiet>
+usage= <inputDir> <outDir> <samplesheet_file> <lenient> <threads> <quiet>
 #
 [directory]
 name=workDir
@@ -31,6 +31,11 @@ flag=out
 name = samplesheet_file
 description = Path to the SampleSheet.csv file
 flag=cp
+
+[parameter]
+name = lenient
+values = false,true
+description = Ignore missing BCL/filter/position/control files: "true" or "false"
 
 [parameter]
 name = threads
