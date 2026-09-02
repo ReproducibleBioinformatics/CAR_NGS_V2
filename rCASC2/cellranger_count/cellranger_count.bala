@@ -1,0 +1,83 @@
+[research]
+description=aligns 10x Genomics single-cell FASTQ reads to a reference transcriptome, filters barcodes and UMIs, and generates gene-expression count matrices per cell
+name=cellranger_count
+#
+[run]
+command=docker run --rm
+script= bash /home/start.sh
+#image= ghcr.io/reproduciblebioinformatics/rCASC2-cellrangerindex-v2:latest
+image= pippo
+usage= <outDir> <transcriptome> <fastqs> <chemistry> <expect_cells> <force_cells> <nosecondary> <r1length> <r2length> <lanes> <save_bam> <max_memory> <threads> <quiet>
+
+[directory]
+name=workDir
+description=indicating the working folder
+flag=io
+mount=/workDir
+
+[directory]
+name=outDir
+description=indicating the folder where results will be written
+mount=/results
+flag=out
+
+[directory]
+name=transcriptome
+description=Specifies the path to the Cell Ranger-compatible reference genome and transcriptome directory (mounted at /transcr).
+mount=/transcr
+flag=in
+
+[directory]
+name=fastqs
+description=Specifies the input directory path containing the raw FASTQ files (mounted at /data)..
+mount=/data
+flag=in
+
+[parameter]
+name = chemistry
+values = "auto", "threeprime", "fiveprime", "SC3Pv1", "SC3Pv2", "SC3Pv3", "SC5P-PE", "SC5P-R2", "ARC-v1"
+description = Specifies the Single Cell library assay configuration.
+
+[parameter]
+name = expect_cells
+description = Sets the expected number of recovered cells to guide the cell-calling algorithm. Passing NULL leaves the default Cell Ranger automatic estimation.
+
+[parameter]
+name = force_cells
+description = Forces the pipeline to detect a fixed number of cells, overriding the automatic cell detection algorithm. Passing NULL leaves the default automatic detection.
+
+[parameter]
+name = nosecondary
+description = Disables secondary analysis execution, such as PCA, t-SNE, UMAP dimensionality reduction, and automated cell clustering. If set to FALSE or NULL, default secondary analysis is executed.
+
+[parameter]
+name = r1length
+description = Hard-trims Read 1 sequences to a fixed number of bases prior to alignment. Passing NULL leaves the default behavior of using the full read length without trimming.
+
+[parameter]
+name = r2length
+description = Hard-trims Read 2 sequences to a fixed number of bases prior to alignment. Passing NULL leaves the default behavior of using the full read length without trimming.
+
+[parameter]
+name = lanes
+description = Restricts analysis to specific flowcell lane numbers. Passing NULL processes all available lanes in the input directory.
+
+[parameter]
+name = save_bam
+description = boolean indicating whether the genome and transcriptome bam files should be kept in outDir
+values = "true","false"
+
+[parameter]
+name = max_memory
+value = 16
+description = Maximum amount of memory (RAM) that Cell Ranger is allowed to use.
+
+[parameter]
+name = threads
+value = 10
+description = a number indicating the number of cores to be used from the application
+
+[parameter]
+name = quiet
+values = false,true
+description = Set to "true" to suppress tool processing messages, set to "false" to keep verbose logging enabled.
