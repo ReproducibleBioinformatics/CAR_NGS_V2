@@ -1,2 +1,5 @@
 # large binary excluded from version control — downloaded at build time instead
 **/cellranger-10.1.0.tar
+# Illumina-licensed binary excluded from version control — must be downloaded
+# individually after accepting the Illumina EULA, not redistributed
+**/bcl2fastq2*
