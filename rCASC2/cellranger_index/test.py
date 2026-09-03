@@ -5,7 +5,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
-SCRIPT_NAME = "test-cellrangerindex"
+SCRIPT_NAME = "test-cellranger_index"
 PINK = "\033[1;35m"
 NC = "\033[0m"
 
@@ -56,12 +56,12 @@ os.makedirs(results, exist_ok=True)
 input_dir = get_latest_output_dir("../rsemstar/results")
 metadata = os.path.join(input_dir, "sampleMetaData_rsemstar.csv") if input_dir else ""
 
-log_test("Executing cellrangerindex pipeline via Python wrapper...")
+log_test("Executing cellranger_index pipeline via Python wrapper...")
 
 # Esecuzione del wrapper demultiplexing.py
 cmd = [
     sys.executable,  # Usa l'interprete Python attualmente attivo nel sistema
-    "cellrangerindex.py",
+    "cellranger_index.py",
     workdir,
     results,
     fastafile,

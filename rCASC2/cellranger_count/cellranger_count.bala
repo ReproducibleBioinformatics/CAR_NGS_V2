@@ -6,7 +6,7 @@ name=cellranger_count
 command=docker run --rm
 script= bash /home/start.sh
 #image= ghcr.io/reproduciblebioinformatics/rCASC2-cellrangerindex-v2:latest
-image= pippo
+image= cellranger_count
 usage= <outDir> <transcriptome> <fastqs> <chemistry> <expect_cells> <force_cells> <nosecondary> <r1length> <r2length> <lanes> <save_bam> <max_memory> <threads> <quiet>
 
 [directory]

@@ -16,7 +16,7 @@ def main():
     usage_str = ' '.join([f'\033[93m<workdir>{RESET}', f'\033[93m<outdir>{RESET}', f'\033[38;5;208m<fastafile>{RESET}', f'\033[38;5;208m<gtffile>{RESET}', f'\033[92m<gene_biotype>{RESET}', f'\033[92m<max_memory>{RESET}', f'\033[92m<threads>{RESET}', f'\033[92m<quiet>{RESET}'])
 
     if len(sys.argv) != 9:
-        print(f'{WHITE}Usage: python cellrangerindex.py {usage_str}{RESET}\n')
+        print(f'{WHITE}Usage: python cellranger_index.py {usage_str}{RESET}\n')
         print(f'{YELLOW}runs Illumina bcl2fastq2 to demultiplex a sequencing run: it converts raw BCL base-call files from an Illumina run folder into per-sample, gzip-compressed FASTQ files according to the sample indexes listed in a SampleSheet.csv, and writes the resulting FASTQ files together with the bcl2fastq execution log to the specified output directory.{RESET}\n')
         print(f'{WHITE}Arguments:{RESET}')
         print(f'\033[93mworkdir        {RESET} [io]  indicating the working folder')
@@ -101,9 +101,9 @@ def main():
     docker_vals['quiet'] = args['quiet']
 
     # --- Assemble docker command ---
-    cmd = ' pippo bash /home/start.sh <outdir> <fastafile> <gtffile> <gene_biotype> <max_memory> <threads> <quiet>'
+    cmd = ' cellranger_index bash /home/start.sh <outdir> <fastafile> <gtffile> <gene_biotype> <max_memory> <threads> <quiet>'
     mount_str = ' '.join(mounts)
-    cmd = ' '.join(['docker run --rm', mount_str, ' pippo bash /home/start.sh <outdir> <fastafile> <gtffile> <gene_biotype> <max_memory> <threads> <quiet>'])
+    cmd = ' '.join(['docker run --rm', mount_str, ' cellranger_index bash /home/start.sh <outdir> <fastafile> <gtffile> <gene_biotype> <max_memory> <threads> <quiet>'])
     PARAM_NAMES = ['gene_biotype', 'max_memory', 'threads', 'quiet']
     def replace_placeholder(match):
         key = match.group(1)

@@ -13,17 +13,18 @@ def main():
     if os.name == 'nt':
         os.system('color')
 
-    usage_str = ' '.join([f'\033[93m<workdir>{RESET}', f'\033[93m<inputdir>{RESET}', f'\033[93m<outdir>{RESET}', f'\033[38;5;208m<samplesheet_file>{RESET}', f'\033[92m<lenient>{RESET}', f'\033[92m<threads>{RESET}', f'\033[92m<quiet>{RESET}'])
+    usage_str = ' '.join([f'\033[93m<workdir>{RESET}', f'\033[93m<outdir>{RESET}', f'\033[38;5;208m<input_file>{RESET}', f'\033[92m<output_file>{RESET}', f'\033[92m<separator>{RESET}', f'\033[92m<max_memory>{RESET}', f'\033[92m<threads>{RESET}', f'\033[92m<quiet>{RESET}'])
 
-    if len(sys.argv) != 8:
-        print(f'{WHITE}Usage: python demultiplexing.py {usage_str}{RESET}\n')
-        print(f'{YELLOW}runs Illumina bcl2fastq2 to demultiplex a sequencing run: it converts raw BCL base-call files from an Illumina run folder into per-sample, gzip-compressed FASTQ files according to the sample indexes listed in a SampleSheet.csv, and writes the resulting FASTQ files together with the bcl2fastq execution log to the specified output directory.{RESET}\n')
+    if len(sys.argv) != 9:
+        print(f'{WHITE}Usage: python matrix_reshaper.py {usage_str}{RESET}\n')
+        print(f'{YELLOW}Converts single-cell expression matrices between sparse formats (.h5, .mtx) and dense formats (.csv, .tsv, .txt), auto-detecting direction from input/output file extensions.{RESET}\n')
         print(f'{WHITE}Arguments:{RESET}')
         print(f'\033[93mworkdir        {RESET} [io]  indicating the working folder')
-        print(f'\033[93minputdir       {RESET} [in]  Illumina run folder (must contain RunInfo.xml)')
         print(f'\033[93moutdir         {RESET} [out] indicating the folder where results will be written')
-        print(f'\033[38;5;208msamplesheet_file{RESET} [cp]  Path to the SampleSheet.csv file')
-        print(f'\033[92mlenient        {RESET}       Ignore missing BCL/filter/position/control files: \"true\" or \"false\"')
+        print(f'\033[38;5;208minput_file     {RESET} [cp]  Path to the input expression matrix file (.h5, .mtx, .csv, .tsv, .txt). For .mtx files, associated barcode and feature tsv files are automatically read from the same folder.')
+        print(f'\033[92moutput_file    {RESET}       Path for the output expression matrix file (.csv, .tsv, .txt, or .mtx). When writing a .mtx file, associated barcodes.tsv and features.tsv files are automatically generated in the same target folder.')
+        print(f'\033[92mseparator      {RESET}       File separator (use \",\" or \";\" for CSV, \"\t\" ora \"tab\" for TSV)')
+        print(f'\033[92mmax_memory     {RESET}       Maximum amount of memory (RAM) that Cell Ranger is allowed to use.')
         print(f'\033[92mthreads        {RESET}       a number indicating the number of cores to be used from the application')
         print(f'\033[92mquiet          {RESET}       Set to \"true\" to suppress tool processing messages, set to \"false\" to keep verbose logging enabled.')
         sys.exit(1)
@@ -31,26 +32,25 @@ def main():
     # Parse positional arguments
     args = {}
     args['workdir'] = sys.argv[1]
-    args['inputdir'] = sys.argv[2]
-    args['outdir'] = sys.argv[3]
-    args['samplesheet_file'] = sys.argv[4]
-    args['lenient'] = sys.argv[5]
-    args['threads'] = sys.argv[6]
-    args['quiet'] = sys.argv[7]
+    args['outdir'] = sys.argv[2]
+    args['input_file'] = sys.argv[3]
+    args['output_file'] = sys.argv[4]
+    args['separator'] = sys.argv[5]
+    args['max_memory'] = sys.argv[6]
+    args['threads'] = sys.argv[7]
+    args['quiet'] = sys.argv[8]
 
     # --- Input validation ---
     errors = []
 
     if not os.path.isdir(args['workdir']):
         errors.append(f'Directory not found: workdir = {args["workdir"]}"')
-    if not os.path.isdir(args['inputdir']):
-        errors.append(f'Directory not found: inputdir = {args["inputdir"]}"')
     if not os.path.isdir(args['outdir']):
         errors.append(f'Directory not found: outdir = {args["outdir"]}"')
-    if not os.path.isfile(args['samplesheet_file']):
-        errors.append(f'File not found: samplesheet_file = {args["samplesheet_file"]}"')
-    if args['lenient'] not in ['false', 'true']:
-        errors.append(f"""Invalid value for lenient: {args["lenient"]}. Allowed: ['false', 'true']""")
+    if not os.path.isfile(args['input_file']):
+        errors.append(f'File not found: input_file = {args["input_file"]}"')
+    if args['separator'] not in [',', ';', '\\t', 'tab']:
+        errors.append(f"""Invalid value for separator: {args["separator"]}. Allowed: [',', ';', '\\t', 'tab']""")
     if args['quiet'] not in ['false', 'true']:
         errors.append(f"""Invalid value for quiet: {args["quiet"]}. Allowed: ['false', 'true']""")
 
@@ -83,25 +83,23 @@ def main():
     mounts.append(f'-v "{scratch_out_path}:/results"')
     docker_vals['outdir'] = '/results'
 
-    # inputdir: read-write directory [in]
-    mounts.append(f'-v "{os.path.abspath(args["inputdir"])}:/data_run"')
-    docker_vals['inputdir'] = '/data_run'
-
     # --- Bind files and service volumes ---
     mounted_folders = {}
-    _src_samplesheet_file = os.path.abspath(args['samplesheet_file'])
-    shutil.copy(_src_samplesheet_file, scratch_path)
-    docker_vals['samplesheet_file'] = f'/workDir/{os.path.basename(_src_samplesheet_file)}'
+    _src_input_file = os.path.abspath(args['input_file'])
+    shutil.copy(_src_input_file, scratch_path)
+    docker_vals['input_file'] = f'/workDir/{os.path.basename(_src_input_file)}'
 
-    docker_vals['lenient'] = args['lenient']
+    docker_vals['output_file'] = args['output_file']
+    docker_vals['separator'] = args['separator']
+    docker_vals['max_memory'] = args['max_memory']
     docker_vals['threads'] = args['threads']
     docker_vals['quiet'] = args['quiet']
 
     # --- Assemble docker command ---
-    cmd = ' demultiplexing bash /home/start.sh <inputdir> <outdir> <samplesheet_file> <lenient> <threads> <quiet>'
+    cmd = ' pippo bash /home/start.sh <outdir> <input_file> <output_file> <separator> <max_memory> <threads> <quiet>'
     mount_str = ' '.join(mounts)
-    cmd = ' '.join(['docker run --rm', mount_str, ' demultiplexing bash /home/start.sh <inputdir> <outdir> <samplesheet_file> <lenient> <threads> <quiet>'])
-    PARAM_NAMES = ['lenient', 'threads', 'quiet']
+    cmd = ' '.join(['docker run --rm', mount_str, ' pippo bash /home/start.sh <outdir> <input_file> <output_file> <separator> <max_memory> <threads> <quiet>'])
+    PARAM_NAMES = ['output_file', 'separator', 'max_memory', 'threads', 'quiet']
     def replace_placeholder(match):
         key = match.group(1)
         val = str(docker_vals.get(key, match.group(0)))

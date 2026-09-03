@@ -1,12 +1,12 @@
 [research]
 description=runs Illumina bcl2fastq2 to demultiplex a sequencing run: it converts raw BCL base-call files from an Illumina run folder into per-sample, gzip-compressed FASTQ files according to the sample indexes listed in a SampleSheet.csv, and writes the resulting FASTQ files together with the bcl2fastq execution log to the specified output directory.
-name=cellrangerindex
+name=cellranger_index
 #
 [run]
 command=docker run --rm
 script= bash /home/start.sh
-#image= ghcr.io/reproduciblebioinformatics/rCASC2-cellrangerindex-v2:latest
-image= pippo
+#image= ghcr.io/reproduciblebioinformatics/rCASC2-cellranger_index-v2:latest
+image= cellranger_index
 usage= <outDir> <fastafile> <gtffile> <gene_biotype> <max_memory> <threads> <quiet>
 
 [directory]

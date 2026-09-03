@@ -4,7 +4,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
-SCRIPT_NAME = "test-cellrangercount"
+SCRIPT_NAME = "test-cellranger_count"
 PINK = "\033[1;35m"
 NC = "\033[0m"
 
@@ -60,12 +60,12 @@ os.makedirs(out_dir, exist_ok=True)
 
 
 # Individuazione dell'ultima cartella di output generata da cellrangerindex
-latest_index_dir = get_latest_output_dir("../cellrangerindex/results")
+latest_index_dir = get_latest_output_dir("../cellranger_index/results")
 
 # Controllo di esistenza obbligatorio
 if not latest_index_dir or not os.path.exists(latest_index_dir):
-    raise FileNotFoundError("Errore fatale: Nessuna run precedente trovata in '../cellrangerindex/results'. "
-                            "Eseguire prima il modulo cellrangerindex.")
+    raise FileNotFoundError("Errore fatale: Nessuna run precedente trovata in '../cellranger_index/results'. "
+                            "Eseguire prima il modulo cellranger_index.")
 
 # Recupera la cartella dell'indice genomico creata dentro l'output
 # (cellranger mkref crea una sottocartella con il nome del genoma dentro la cartella di output)
@@ -79,7 +79,7 @@ transcriptome = subdirs[0]  # Seleziona la cartella dell'indice generata da cell
 
 
 
-log_test("Executing cellrangercount pipeline via Python wrapper...")
+log_test("Executing cellranger_count pipeline via Python wrapper...")
 
 # Execution of cellranger_count.py wrapper with ordered arguments
 cmd = [

@@ -6,7 +6,7 @@ name=demultiplexing
 command=docker run --rm
 script= bash /home/start.sh
 #image= ghcr.io/reproduciblebioinformatics/rCASC2-demultiplexing-v2:latest
-image= pippo
+image= demultiplexing
 usage= <inputDir> <outDir> <samplesheet_file> <lenient> <threads> <quiet>
 #
 [directory]

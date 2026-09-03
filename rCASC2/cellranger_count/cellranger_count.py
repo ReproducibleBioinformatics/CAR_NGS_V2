@@ -124,9 +124,9 @@ def main():
     docker_vals['quiet'] = args['quiet']
 
     # --- Assemble docker command ---
-    cmd = ' pippo bash /home/start.sh <outdir> <transcriptome> <fastqs> <chemistry> <expect_cells> <force_cells> <nosecondary> <r1length> <r2length> <lanes> <save_bam> <max_memory> <threads> <quiet>'
+    cmd = ' cellranger_count bash /home/start.sh <outdir> <transcriptome> <fastqs> <chemistry> <expect_cells> <force_cells> <nosecondary> <r1length> <r2length> <lanes> <save_bam> <max_memory> <threads> <quiet>'
     mount_str = ' '.join(mounts)
-    cmd = ' '.join(['docker run --rm', mount_str, ' pippo bash /home/start.sh <outdir> <transcriptome> <fastqs> <chemistry> <expect_cells> <force_cells> <nosecondary> <r1length> <r2length> <lanes> <save_bam> <max_memory> <threads> <quiet>'])
+    cmd = ' '.join(['docker run --rm', mount_str, ' cellranger_count bash /home/start.sh <outdir> <transcriptome> <fastqs> <chemistry> <expect_cells> <force_cells> <nosecondary> <r1length> <r2length> <lanes> <save_bam> <max_memory> <threads> <quiet>'])
     PARAM_NAMES = ['chemistry', 'expect_cells', 'force_cells', 'nosecondary', 'r1length', 'r2length', 'lanes', 'save_bam', 'max_memory', 'threads', 'quiet']
     def replace_placeholder(match):
         key = match.group(1)
